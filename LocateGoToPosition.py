@@ -23,7 +23,8 @@ white = (255, 255, 255)
 strVisionRoot = str(Path(__file__).parent)
 
 # define a string variable for the path to the image file#
-strImageFolder = strVisionRoot + '/PowerCellImages/'
+#strImageFolder = strVisionRoot + '/PowerCellImages/'
+strImageFolder = strVisionRoot + '/OuterTargetImages/'
 print(strImageFolder)
 
 # read and filter file names
@@ -40,6 +41,9 @@ intLastFile = len(photos) - 1
 
 while(True):
 
+    print('------------------------------------------------------------------------------')
+    print('Image: ', photos[i])
+
     # load a color image using string
     imgImageInput = cv2.imread(photos[i])
 
@@ -50,8 +54,16 @@ while(True):
     hsvImageInput = cv2.cvtColor(imgImageInput, cv2.COLOR_BGR2HSV)
 
     # define range of yellow color in HSV
-    lower_yellow = np.array([20,120,120])
-    upper_yellow = np.array([40,255,255])
+    #lower_yellow = np.array([20,120,120])
+    #upper_yellow = np.array([40,255,255])
+
+    #actually setting this for blue
+    lower_yellow = np.array([40,150,150])
+    upper_yellow = np.array([80,255,255])
+
+    #need this to pick out target in "far protected zone" image
+    lower_yellow = np.array([40,150,100])
+    upper_yellow = np.array([80,255,255])
 
     # Threshold the HSV image to get only yellow colors
     binary_mask = cv2.inRange(hsvImageInput, lower_yellow, upper_yellow)
@@ -76,7 +88,7 @@ while(True):
 
     if len(contours) == 0:
         print("No contours found")
-        break
+        cv2.waitKey(0)  
             
     ### sort contours by area descending, keep only largest
     areaSortedContours = sorted(contours, key = cv2.contourArea, reverse = True)[:5]
@@ -101,8 +113,10 @@ while(True):
         (xm,ym),(wm,hm), am = rectangle
 
         #### print to console
-        print ('index=',j,'height=',hm,'width=',wm,'angle=',am,'minAreaAspect=',wm/hm)
-        #print ('index=',j,'height=',hm,'width=',wm,'angle=',am)
+        if abs(hm) > 0:
+            print ('index=',j,'height=',hm,'width=',wm,'angle=',am,'minAreaAspect=',wm/hm)
+        else:
+            print ('index=',j,'height=',hm,'width=',wm,'angle=',am)
 
         #### track tallest contour that looks like a cube based on extent
         if (hm > floMaximumHeight):
