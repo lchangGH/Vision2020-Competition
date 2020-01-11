@@ -106,7 +106,7 @@ strVisionRoot = posCodePath.parent
 #strImageFolder = str(strVisionRoot / 'CalibrationImages')
 #strImageFolder = str(strVisionRoot / 'ProblemImages')
 #strImageFolder = str(strVisionRoot / 'DistanceImages') 
-strImageFolder = str(strVisionRoot / 'TestPictures')
+strImageFolder = str(strVisionRoot / 'PowerCellImages')
 #strImageFolder = str(strVisionRoot / 'EllipseImages')
 
 print (strImageFolder)
@@ -161,9 +161,11 @@ while (True):
     #lower_yellow = np.array([28,150,150])
     #upper_yellow = np.array([40,255,255])
 
-    lower_yellow = np.array([22,60,60]) #28,150,150
-    upper_yellow = np.array([36,255,255]) #32,255,255
-
+    lower_yellow = np.array([20,60,60]) #28,150,150
+    upper_yellow = np.array([55,255,255]) #32,255,255 
+    lower_green = np.array([70, 230, 200]) #70, 230, 200
+    upper_green = np.array([80, 255, 255])
+    
         ## Depending upon mask method create BINARY and YELLOW mask
     if intMaskMethod == 0:
         ### from 
@@ -427,7 +429,7 @@ while (True):
                     bottommost = tuple(cnt[cnt[:,:,1].argmax()][0])
                     btmX, btmY = bottommost
                     rgtX, rgtY = rightmost
-                    cv2.circle(imgContours, rightmost, 6, red, -1)
+                    cv2.circle(imgContours, rightmost, 6, RED, -1)
                     cv2.circle(imgContours, bottommost, 6, BLUE, -1)
                     #cv2.circle(imgContours, (rgtX,btmY), 12, cyan, -1)
                     targetX = (rgtX - int(targetWidth/2.0))
@@ -441,7 +443,7 @@ while (True):
                     bottommost = tuple(cnt[cnt[:,:,1].argmax()][0])
                     btmX, btmY = bottommost
                     lftX, lftY = leftmost
-                    cv2.circle(imgContours, leftmost, 6, green, -1)
+                    cv2.circle(imgContours, leftmost, 6, GREEN, -1)
                     cv2.circle(imgContours, bottommost, 6, BLUE, -1)
                     #cv2.circle(imgContours, (lftX,btmY), 12, cyan, -1)
                     targetX = (lftX + int(targetWidth/2.0))
@@ -477,46 +479,48 @@ while (True):
     ## loop for user input to close - loop indent 2
     booReqToExit = False # true when user wants to exit
 
-    ### wait for user to press key
-    k = cv2.waitKey(0)
-    if k == 27:
-        booReqToExit = True # user wants to exit
-        break
-    elif k == 82: # user wants to move down list
-        if i - 1 < 0:
-            i = intLastFile
-        else:
-            i = i - 1
-        break
-    elif k == 84: # user wants to move up list
-        if i + 1 > intLastFile:
-            i = 0
-        else:
-            i = i + 1
-        break
-    elif k == 115:
-        intMaskMethod = 0
-        print()
-        print('Mask Method s = Simple In-Range')
-        break
-    elif k == 107:
-        intMaskMethod = 1
-        print()
-        print('Mask Method k = Knoxville Method')
-        break
-    elif k == 109:
-        intMaskMethod = 2
-        print()
-        print('Mask Method m = Merge Mystery Method')
-        break
-    elif k == 32:
-        print()
-        print('...repeat...')
-        break
-    else:
-        print (k)
+    while (True):
 
-    ### end of loop indent 2
+        ### wait for user to press key
+        k = cv2.waitKey(0)
+        if k == 27:
+            booReqToExit = True # user wants to exit
+            break
+        elif k == 49: # user wants to move down list
+            if i - 1 < 0:
+                i = intLastFile
+            else:
+                i = i - 1
+            break
+        elif k == 50: # user wants to move up list
+            if i + 1 > intLastFile:
+                i = 0
+            else:
+                i = i + 1
+            break
+        elif k == 115:
+            intMaskMethod = 0
+            print()
+            print('Mask Method s = Simple In-Range')
+            break
+        elif k == 107:
+            intMaskMethod = 1
+            print()
+            print('Mask Method k = Knoxville Method')
+            break
+        elif k == 109:
+            intMaskMethod = 2
+            print()
+            print('Mask Method m = Merge Mystery Method')
+            break
+        elif k == 32:
+            print()
+            print('...repeat...')
+            break
+        else:
+            print (k)
+
+        ### end of loop indent 2
 
     ## test for exit main loop request from user
     if booReqToExit:
