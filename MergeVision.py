@@ -106,7 +106,7 @@ strVisionRoot = posCodePath.parent
 #strImageFolder = str(strVisionRoot / 'CalibrationImages')
 #strImageFolder = str(strVisionRoot / 'ProblemImages')
 #strImageFolder = str(strVisionRoot / 'DistanceImages') 
-strImageFolder = str(strVisionRoot / 'PowerCellImages')
+strImageFolder = str(strVisionRoot / 'TestPictures')
 #strImageFolder = str(strVisionRoot / 'EllipseImages')
 
 print (strImageFolder)
@@ -427,7 +427,7 @@ while (True):
                     bottommost = tuple(cnt[cnt[:,:,1].argmax()][0])
                     btmX, btmY = bottommost
                     rgtX, rgtY = rightmost
-                    cv2.circle(imgContours, rightmost, 6, RED, -1)
+                    cv2.circle(imgContours, rightmost, 6, red, -1)
                     cv2.circle(imgContours, bottommost, 6, BLUE, -1)
                     #cv2.circle(imgContours, (rgtX,btmY), 12, cyan, -1)
                     targetX = (rgtX - int(targetWidth/2.0))
