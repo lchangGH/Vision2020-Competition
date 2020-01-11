@@ -100,6 +100,43 @@ def get_opposit(hyp, theta):
 def get_adjacent(hyp, theta):
     return abs(hyp*math.cos(math.radians(theta)))
 
+def calculateDistance(heightOfCamera, heightOfTarget, pitch):
+    heightOfTargetFromCamera = heightOfTarget - heightOfCamera
+
+    # Uses trig and pitch to find distance to target
+    '''
+    d = distance
+    h = height between camera and target
+    a = angle = pitch
+    tan a = h/d (opposite over adjacent)
+    d = h / tan a
+                         .
+                        /|
+                       / |
+                      /  |h
+                     /a  |
+              camera -----
+                       d
+    '''
+    distance = math.fabs(heightOfTargetFromCamera / math.tan(math.radians(pitch)))
+
+    return distance
+
+
+# Uses trig and focal length of camera to find yaw.
+# Link to further explanation: https://docs.google.com/presentation/d/1ediRsI-oR3-kwawFJZ34_ZTlQS2SDBLjZasjzZ-eXbQ/pub?start=false&loop=false&slide=id.g12c083cffa_0_298
+def calculateYaw(pixelX, centerX, hFocalLength):
+    yaw = math.degrees(math.atan((pixelX - centerX) / hFocalLength))
+    return round(yaw)
+
+
+# Link to further explanation: https://docs.google.com/presentation/d/1ediRsI-oR3-kwawFJZ34_ZTlQS2SDBLjZasjzZ-eXbQ/pub?start=false&loop=false&slide=id.g12c083cffa_0_298
+def calculatePitch(pixelY, centerY, vFocalLength):
+    pitch = math.degrees(math.atan((pixelY - centerY) / vFocalLength))
+    # Just stopped working have to do this:
+    pitch *= -1
+    return round(pitch)
+
 # select folder of interest CONFUSING
 posCodePath = Path(__file__).absolute()
 strVisionRoot = posCodePath.parent
@@ -165,7 +202,7 @@ while (True):
     upper_yellow = np.array([55,255,255]) #32,255,255 
     lower_green = np.array([70, 230, 200]) #70, 230, 200
     upper_green = np.array([80, 255, 255])
-    
+
         ## Depending upon mask method create BINARY and YELLOW mask
     if intMaskMethod == 0:
         ### from 
@@ -469,12 +506,15 @@ while (True):
     ## display modified size original image
     imgShowInput = imgImageInput #cv2.resize(imgImageInput, None, fx=floImageMultiplier, fy=floImageMultiplier, interpolation = cv2.INTER_AREA)
     cv2.imshow(photos[i], imgShowInput)
-    cv2.moveWindow(photos[i],100,50)
+    cv2.moveWindow(photos[i],50,50)
 
     ## show result over color mask at modified size
     imgShowHSV = imgContours #cv2.resize(imgContours, None, fx=floImageMultiplier, fy=floImageMultiplier, interpolation = cv2.INTER_AREA)
     cv2.imshow('contours over yellow mask', imgShowHSV)
-    cv2.moveWindow('contours over yellow mask',600,50)
+    Distance = 12
+    Hight = 2.8
+    Pitch = .2421
+    cv2.moveWindow('contours over yellow mask',650,50)
 
     ## loop for user input to close - loop indent 2
     booReqToExit = False # true when user wants to exit
@@ -498,6 +538,9 @@ while (True):
             else:
                 i = i + 1
             break
+        elif k == 52:
+            cv2.putText(imgShowHSV, "%.2fft" % (12 / 12), (imgShowHSV.shape[1] - 200, imgShowHSV.shape[0] - 20), cv2.FONT_HERSHEY_SIMPLEX,
+        2.0, (0, 255, 0), 3)
         elif k == 115:
             intMaskMethod = 0
             print()
