@@ -21,7 +21,7 @@ cyan = (252, 252, 3)
 white = (255, 255, 255)
 
 
-strImageFolder = "/Users/rachellucyshyn/Documents/GitHub/Vision2020-Competition/PowerCell25Scale/"
+strImageFolder = "/Users/rachellucyshyn/Documents/GitHub/Vision2020-Competition/OuterTargetImages/"
 print(strImageFolder)
 
 # read and filter file names
@@ -48,12 +48,11 @@ while(True):
 
     #need this to pick out target in "far protected zone" image
     #settingcolour
-    lower_yellow = np.array([20,30,60])
-    upper_yellow = np.array([55,255,255])
-
+    lower_green = np.array([40,150,150])
+    upper_green = np.array([80,255,255])
 
     # Threshold the HSV image to get only yellow colors
-    binary_mask = cv2.inRange(hsvImageInput, lower_yellow, upper_yellow)
+    binary_mask = cv2.inRange(hsvImageInput, lower_green, upper_green)
 
     # mask the image to only show yellow or green images
     # Bitwise-AND mask and original image
@@ -61,8 +60,8 @@ while(True):
 
     # display the masked images to screen
     #cv2.imshow('hsvImageInput', hsvImageInput)
-    cv2.imshow('binary_mask',binary_mask)
-    cv2.imshow('colour_masked',colour_mask)
+    #cv2.imshow('binary_mask',binary_mask)
+    #cv2.imshow('colour_masked',colour_mask)
 
     # generate the contours and display
     imgFindContour, contours, hierarchy = cv2.findContours(binary_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -190,16 +189,10 @@ while(True):
         print('minimum area rectangle extent = ', float(area)/(width*height))
 
         #----------------------------------------
-        # calculate focal length from best image
-        heightTarget = 7 #height of half hexagon
-        distancetoTarget = 84 #of best pic
-        FocalLength = height*(distancetoTarget/heightTarget)
-        print('the  focal length is', FocalLength, 'pixels')
-        #FocalLength = 576.78 #avg of all 10 focal lengths calculated
+        # calculate offset of middle of bounding box from center
+        midBoundingRect = (leftside + rightside)/2
+        
 
-        #calculate distance using real focal length
-        #distanceCalc = heightTarget*(FocalLength/height)
-        #print('distance is', distanceCalc, 'inches')
 
     # minimum enclosing circle
     (x,y),radius = cv2.minEnclosingCircle(cnt)
