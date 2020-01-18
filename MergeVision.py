@@ -15,6 +15,12 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 ORANGE = (3, 64, 252) 
 
+# Globals
+global rightmost
+global leftmost
+global topmost
+global bottommost
+
 # define constraints
 floMinExtent = 0.5 # ?
 floMinArea = 400.0 # ?
@@ -137,13 +143,17 @@ def calculatePitch(pixelY, centerY, vFocalLength):
     pitch *= -1
     return round(pitch)
 
+def distance_to_camera(knownWidth, focalLength, perWidth):
+	# compute and return the distance from the maker to the camera
+	return (knownWidth * focalLength) / perWidth
+
 # select folder of interest CONFUSING
 posCodePath = Path(__file__).absolute()
 strVisionRoot = posCodePath.parent
 #strImageFolder = str(strVisionRoot / 'CalibrationImages')
 #strImageFolder = str(strVisionRoot / 'ProblemImages')
 #strImageFolder = str(strVisionRoot / 'DistanceImages') 
-strImageFolder = str(strVisionRoot / 'PowerCellImages')
+strImageFolder = str(strVisionRoot / 'PowerCell25Scale')
 #strImageFolder = str(strVisionRoot / 'EllipseImages')
 
 print (strImageFolder)
@@ -171,6 +181,8 @@ intMaskMethod = 2
 print()
 print('Mask Method s = Simple In-Range')
 
+# has an image been shown yet?
+firstImageShown = False
 # Main Loop Begins
 while (True):
 
@@ -198,7 +210,7 @@ while (True):
     #lower_yellow = np.array([28,150,150])
     #upper_yellow = np.array([40,255,255])
 
-    lower_yellow = np.array([20,60,60]) #28,150,150
+    lower_yellow = np.array([15,40,60]) #28,150,150
     upper_yellow = np.array([55,255,255]) #32,255,255 
     lower_green = np.array([70, 230, 200]) #70, 230, 200
     upper_green = np.array([80, 255, 255])
@@ -279,8 +291,8 @@ while (True):
     if intInitialContoursFound:
         
         ### sort contours by area, keep only largest
-        print(contours)
-        print(cv2.contourArea)
+        #print(contours)
+        #print(cv2.contourArea)
         initialSortedContours = sorted(contours, key = cv2.contourArea, reverse = True)[:5]
 
         ### filter contours by area, keeping only those over floMinArea
@@ -369,8 +381,16 @@ while (True):
 
             #### draw tallest min area rectange
             box = cv2.boxPoints(tallestRectangle)
+            print("boxpoints" +  str(box) )
             box = np.int0(box)
+            print("boxint0" +  str(box) )
             cv2.drawContours(imgContours,[box],-1,BLUE,2)
+            if firstImageShown == False :
+                # Distance is 12' or 1ft
+                KNOWN_DISTANCE = 12
+                # Width is 2.5' or 63.5mm
+                KNOWN_WIDTH = 2.5
+                focalLength = (((box[2,0]-box[1,0]) * KNOWN_DISTANCE) / KNOWN_WIDTH)
 
             #### calculate the dimensions to the center of the short sides
             opp = get_opposit(floWidthAtMaxHeight/2.0, floAngleAtMaxHeight)
@@ -462,6 +482,7 @@ while (True):
                     print('fade to the left')
                     # extreme points
                     rightmost = tuple(cnt[cnt[:,:,0].argmax()][0])
+                    leftmost = tuple(cnt[cnt[:,:,0].argmin()][0])
                     topmost = tuple(cnt[cnt[:,:,1].argmin()][0])
                     bottommost = tuple(cnt[cnt[:,:,1].argmax()][0])
                     btmX, btmY = bottommost
@@ -476,6 +497,7 @@ while (True):
                     print('fade to the right')
                     # extreme points
                     leftmost = tuple(cnt[cnt[:,:,0].argmin()][0])
+                    rightmost = tuple(cnt[cnt[:,:,0].argmax()][0])
                     topmost = tuple(cnt[cnt[:,:,1].argmin()][0])
                     bottommost = tuple(cnt[cnt[:,:,1].argmax()][0])
                     btmX, btmY = bottommost
@@ -510,12 +532,29 @@ while (True):
 
     ## show result over color mask at modified size
     imgShowHSV = imgContours #cv2.resize(imgContours, None, fx=floImageMultiplier, fy=floImageMultiplier, interpolation = cv2.INTER_AREA)
-    cv2.imshow('contours over yellow mask', imgShowHSV)
-    Distance = 12
-    Hight = 2.8
-    Pitch = .2421
-    cv2.moveWindow('contours over yellow mask',650,50)
 
+  #  inches = (KNOWN_WIDTH * focalLength) / (box[2,0]-box[1,0])
+    inches = (KNOWN_WIDTH * focalLength) / (efy1-efy2)
+    cv2.putText(imgShowHSV, "%.2fft" % (inches),
+(imgShowHSV.shape[1] - 200, imgShowHSV.shape[0] - 20), cv2.FONT_HERSHEY_SIMPLEX,
+2.0, (0, 255, 0), 3)
+    print("in " + str(inches))
+    print("focal " + str(focalLength))
+    print("box2 " + str(box[2,0]))
+    print("box1 " + str(box[1,0]))
+    print("boxSum " + str(box[2,0]-box[1,0]))
+    print("efx1 " + str(efx1))
+    print("efx2 " + str(efx2))
+    print("efxSum " + str(efx1 - efx2))
+    print("efy1 " + str(efy1))
+    print("efy2 " + str(efy2))
+    
+    
+    
+    
+    cv2.imshow('contours over yellow mask', imgShowHSV)
+    cv2.moveWindow('contours over yellow mask',650,50)
+    firstImageShown = True
     ## loop for user input to close - loop indent 2
     booReqToExit = False # true when user wants to exit
 

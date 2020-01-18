@@ -4,20 +4,40 @@ import numpy as np
 import imutils
 import cv2
 
-def find_marker(image):
-	# convert the image to grayscale, blur it, and detect edges
-	gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-	gray = cv2.GaussianBlur(gray, (5, 5), 0)
-	edged = cv2.Canny(gray, 35, 125)
+def biggestContourI(contours):
+    maxVal = 0
+    maxI = -1
+    for i in range(0, len(contours)):
+        if len(contours[i]) > maxVal:
+            cs = contours[i]
+            maxVal = len(contours[i])
+            maxI = i
+    return maxI
 
-	# find the contours in the edged image and keep the largest one;
-	# we'll assume that this is our piece of paper in the image
-	cnts = cv2.findContours(edged.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-	cnts = imutils.grab_contours(cnts)
-	c = max(cnts, key = cv2.contourArea)
- 
-	# compute the bounding box of the of the paper region and return it
-	return cv2.minAreaRect(c)
+def find_marker(image):
+	# convert the image to hsvscale, blur it, and detect edges
+    
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    
+    contours0, hierarchy = cv2.findContours(flt, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+    # Only draw the biggest one
+    bc = biggestContourI(contours0)
+    print("bc " + str(bc))
+    #print("contours " + str(contours0))
+    if bc != -1 :
+        cv2.drawContours(image,contours0, bc, (220,0,255), 3)
+
+    lower_yellow = np.array([20,60,50])
+    upper_yellow = np.array([90,255,255])
+    mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
+    res = cv2.bitwise_and(image,image, mask= mask)
+    
+    cv2.imshow('my webcam', image)
+    cv2.imshow('hsv', hsv)
+    #cv2.imshow('flt', flt)
+    cv2.imshow('res',res)
+
 
 # distance from camera to object using Python and OpenCVPython
 def distance_to_camera(knownWidth, focalLength, perWidth):
@@ -35,7 +55,7 @@ KNOWN_WIDTH = 11.0
 # load the furst image that contains an object that is KNOWN TO BE 2 feet
 # from our camera, then find the paper marker in the image, and initialize
 # the focal length
-image = cv2.imread("C:\VSCodeMain\Vision2019\Vision2020\Vision2020-Competition\PowerCellImages\cell-03.png")
+image = cv2.imread("C:\VSCodeMain\Vision2019\Vision2020\Vision2020-Competition\PowerCell25Scale\power+02f.jpg")
 marker = find_marker(image)
 focalLength = (marker[1][0] * KNOWN_DISTANCE) / KNOWN_WIDTH
 print ("I worked!")
@@ -44,7 +64,7 @@ print ("I worked!")
 while (True):
 	# load the image, find the marker in the image, then compute the
 	# distance to the marker from the camera
-	image = cv2.imread("C:\VSCodeMain\Vision2019\Vision2020\Vision2020-Competition\PowerCellImages\cell-03.png")
+	image = cv2.imread("C:\VSCodeMain\Vision2019\Vision2020\Vision2020-Competition\PowerCellImages\power+02f.jpg")
 	marker = find_marker(image)
 	inches = distance_to_camera(KNOWN_WIDTH, focalLength, marker[1][0])
 
