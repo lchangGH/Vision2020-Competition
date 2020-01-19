@@ -127,6 +127,8 @@ def threshold_video(lower_color, upper_color, blur):
     s = threshold_range(s, lower_color[1], upper_color[1])
     v = threshold_range(v, lower_color[2], upper_color[2])
     combined_mask = cv2.bitwise_and(h, cv2.bitwise_and(s, v))
+    cv2.imshow('combined_mask',combined_mask)
+
 
     # hold the HSV image to get only red colors
     # mask = cv2.inRange(combined, lower_color, upper_color)
@@ -163,7 +165,7 @@ def findTargets(frame, mask):
 # Finds the balls from the masked image and displays them on original stream + network tables
 def findPowerCell(frame, mask):
     # Finds contours
-    contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_TC89_KCOS)
+    _, contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_TC89_KCOS)
     # Take each frame
     # Gets the shape of video
     screenHeight, screenWidth, _ = frame.shape
@@ -614,7 +616,17 @@ def draw_circle(event,x,y,flags,param):
         green = np.uint8([[[img[y, x, 0], img[y, x, 1], img[y, x, 2]]]])
         print(img[y, x, 2], img[y, x, 1], img[y, x, 0], cv2.cvtColor(green,cv2.COLOR_BGR2HSV))
 
-
+def mouseRGB():
+    if event == cv2.EVENT_LBUTTONDOWN: #checks mouse left button down condition
+        colorsB = image[y,x,0]
+        colorsG = image[y,x,1]
+        colorsR = image[y,x,2]
+        colors = image[y,x]
+        print("Red: ",colorsR)
+        print("Green: ",colorsG)
+        print("Blue: ",colorsB)
+        print("Coordinates of pixel: X: ",x,"Y: ",y)
+        
 Driver = False
 Tape = False
 PowerCell = True
@@ -626,6 +638,8 @@ img = images[0]
 imgLength = len(images)
 
 print("Hello Vision Team!")
+
+
 
 while True:
 
@@ -647,6 +661,9 @@ while True:
 
                 boxBlur = blurImg(frame, yellow_blur)
                 threshold = threshold_video(lower_yellow, upper_yellow, boxBlur)
+                cv2.imshow('frame',frame) #name of image
+                cv2.imshow('threshold', threshold)
+                cv2.waitKey(0)
                 processed = findPowerCell(frame, threshold)
             elif ControlPanel:
 
@@ -672,8 +689,3 @@ while True:
          currentImg = 0
 
     img = images[currentImg]
-
-
-
-
-
