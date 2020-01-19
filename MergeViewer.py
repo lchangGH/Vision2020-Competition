@@ -1,4 +1,3 @@
-
 # ----------------------------------------------------------------------------
 # Copyright (c) 2018 FIRST. All Rights Reserved.
 # Open Source Software - may be modified and shared by FRC teams. The code
@@ -57,21 +56,24 @@ def load_images_from_folder(folder):
             images.append(img)
     return images
 
-#images = load_images_from_folder("./OuterTarget")
+#images = load_images_from_folder("./OuterTargetImages")
 #images = load_images_from_folder("./OuterTargetHalfScale")
 #images = load_images_from_folder("./PowerCell25Scale")
-#images = load_images_from_folder("./PowerCellImages")
+#mages = load_images_from_folder("./PowerCellImages")
 images = load_images_from_folder("./PowerCellFullScale")
 
-
+# finds height/width of camera frame (eg. 640 width, 480 height)
 image_height, image_width = images[0].shape[:2]
 print(image_height, image_width)
 
+# FOV of microsoft camera (68.5 is camera spec)
 diagonalView = math.radians(68.5)
 
-# 16:9 aspect ratio
-horizontalAspect = 16
-verticalAspect = 9
+print("Diagonal View:" + str(diagonalView))
+
+# 4:3 aspect ratio
+horizontalAspect = 4
+verticalAspect = 3
 
 # Reasons for using diagonal aspect is to calculate horizontal field of view.
 diagonalAspect = math.hypot(horizontalAspect, verticalAspect)
@@ -92,8 +94,8 @@ lower_green = np.array([40, 75, 75])
 upper_green = np.array([96, 255, 255])
 
 # define range of yellow in HSV
-lower_yellow = np.array([22, 24, 87])
-upper_yellow = np.array([56, 255, 255])
+lower_yellow = np.array([20, 25, 30])
+upper_yellow = np.array([70, 255, 255])
 
 # initialize some variable used later for user input
 color_is_yellow = True
@@ -134,6 +136,7 @@ def threshold_video(lower_color, upper_color, blur):
     s = threshold_range(s, lower_color[1], upper_color[1])
     v = threshold_range(v, lower_color[2], upper_color[2])
     combined_mask = cv2.bitwise_and(h, cv2.bitwise_and(s, v))
+    
 
     # hold the HSV image to get only red colors
     # mask = cv2.inRange(combined, lower_color, upper_color)
@@ -197,9 +200,10 @@ def findBall(contours, image, centerX, centerY):
         # Sort contours by area size (biggest to smallest)
         cntsSorted = sorted(contours, key=lambda x: cv2.contourArea(x), reverse=True)
         cntHeight = 0
-        biggestCargo = []
+        biggestPowerCell = []
         for cnt in cntsSorted:
             x, y, w, h = cv2.boundingRect(cnt)
+        
             cntHeight = h
             aspect_ratio = float(w) / h
             # Get moments of contour; mainly for centroid
@@ -217,7 +221,7 @@ def findBall(contours, image, centerX, centerY):
                     cy = int(M["m01"] / M["m00"])
                 else:
                     cx, cy = 0, 0
-                if (len(biggestCargo) < 3):
+                if (len(biggestPowerCell) < 3):
 
                     ##### DRAWS CONTOUR######
                     # Gets rotated bounding rectangle of contour
@@ -252,17 +256,17 @@ def findBall(contours, image, centerX, centerY):
                     cv2.circle(image, center, radius, (23, 184, 80), 1)
 
                     # Appends important info to array
-                    if [cx, cy, cnt, cntHeight] not in biggestCargo:
-                        biggestCargo.append([cx, cy, cnt, cntHeight])
+                    if [cx, cy, cnt, cntHeight] not in biggestPowerCell:
+                        biggestPowerCell.append([cx, cy, cnt, cntHeight])
 
         # Check if there are cargo seen
-        if (len(biggestCargo) > 0):
+        if (len(biggestPowerCell) > 0):
             # pushes that it sees cargo to network tables
 
             finalTarget = []
             # Sorts targets based on x coords to break any angle tie
-            biggestCargo.sort(key=lambda x: math.fabs(x[0]))
-            closestCargo = min(biggestCargo, key=lambda x: (math.fabs(x[0] - centerX)))
+            biggestPowerCell.sort(key=lambda x: math.fabs(x[0]))
+            closestCargo = min(biggestPowerCell, key=lambda x: (math.fabs(x[0] - centerX)))
             xCoord = closestCargo[0]
             finalTarget.append(calculateYaw(xCoord, centerX, H_FOCAL_LENGTH))
             finalTarget.append(calculateDistWPILib(closestCargo[3]))
@@ -523,8 +527,8 @@ def calculateDistance(heightOfCamera, heightOfTarget, pitch):
     return distance
 
 
-avg = [0 for i in range(0, 8)]
-
+avg = [0 for i in range(0, 1)]
+#8 is number of frames to calculated average pixel height
 
 def calculateDistWPILib(cntHeight):
     global image_height, avg
@@ -541,12 +545,22 @@ def calculateDistWPILib(cntHeight):
 
     PIX_HEIGHT = PIX_HEIGHT / len(avg)
 
+    print (PIX_HEIGHT)
+
 
 
     print(PIX_HEIGHT, avg)  # print("The contour height is: ", cntHeight)
-    TARGET_HEIGHT = 0.5
 
-    VIEWANGLE = math.atan((TARGET_HEIGHT * image_height) / (2 * 15.81 * 6))
+    #TARGET_HEIGHT is actual height (for balls 7/12 7 inches)   
+    TARGET_HEIGHT = 0.583
+
+ 
+    #image height is the y resolution calculated from image size
+    #15.81 was the pixel height of a a ball found at a measured distance (which is 6 feet away)
+    #65 is the pixel height of a scale image 6 feet away
+    KNOWN_OBJECT_PIXEL_HEIGHT = 65
+    KNOWN_OBJECT_DISTANCE = 6
+    VIEWANGLE = math.atan((TARGET_HEIGHT * image_height) / (2 * KNOWN_OBJECT_PIXEL_HEIGHT * KNOWN_OBJECT_DISTANCE))
 
     # print("after 2: ", VIEWANGLE)
     # VIEWANGLE = math.radians(68.5)
@@ -651,7 +665,6 @@ while True:
 
         else:
             if PowerCell:
-
                 boxBlur = blurImg(frame, yellow_blur)
                 threshold = threshold_video(lower_yellow, upper_yellow, boxBlur)
                 processed = findPowerCell(frame, threshold)
