@@ -93,8 +93,15 @@ yellow_blur = 27
 lower_green = np.array([40, 75, 75])
 upper_green = np.array([96, 255, 255])
 
+# define range of yellow in HSV
 lower_yellow = np.array([20, 25, 30])
 upper_yellow = np.array([70, 255, 255])
+
+# initialize some variable used later for user input
+color_is_yellow = True
+lower_color = lower_yellow
+upper_color = upper_yellow
+
 
 switch = 1
 
@@ -144,7 +151,7 @@ def findTargets(frame, mask):
 
 
     # Finds contours
-    contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_TC89_KCOS)
+    _, contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_TC89_KCOS)
 
     contours = sorted(contours, key=lambda x: cv2.contourArea(x), reverse=True)
 
@@ -626,7 +633,7 @@ def draw_circle(event,x,y,flags,param):
 
     if event == cv2.EVENT_LBUTTONDOWN:
         green = np.uint8([[[img[y, x, 0], img[y, x, 1], img[y, x, 2]]]])
-        print(img[y, x, 2], img[y, x, 1], img[y, x, 0], cv2.cvtColor(green,cv2.COLOR_BGR2HSV))
+        print(x, y, img[y, x, 2], img[y, x, 1], img[y, x, 0], cv2.cvtColor(green,cv2.COLOR_BGR2HSV))
 
 
 Driver = False
@@ -669,20 +676,135 @@ while True:
                 processed = findControlPanel(frame, threshold)
 
     cv2.imshow("raw", img)
+    cv2.imshow("threshold", threshold)
     cv2.imshow("processed", processed)
     cv2.setMouseCallback('raw', draw_circle)
 
     key = cv2.waitKey(0)
     print(key) 
 
-    if key == 27:
+    if key == 27: # <ESC> user wants to exit
         break
+    elif key == 112: # 'p' previous image
+        if currentImg - 1 < 0:
+            currentImg = imgLength - 1
+        else:
+            currentImg = currentImg - 1
+    elif key == 110: # 'n' next image
+        if currentImg + 1 > imgLength - 1:
+            currentImg = 0
+        else:
+            currentImg = currentImg + 1
 
-    currentImg += 1
-    print(imgLength)
+    elif key == 104: # 'h' decrease lower hue
+        if (lower_color[0] > 0):
+            lower_color[0] = lower_color[0] - 1;
+        print()
+        print('Lower hue: ', lower_color[0])
+    elif key == 72: # 'H' increase lower hue
+        if (lower_color[0] < upper_color[0]):
+            lower_color[0] = lower_color[0] + 1;
+        print()
+        print('Lower hue: ', lower_color[0])
+    elif key == 106: # 'j' decrease upper hue
+        if (upper_color[0] > lower_color[0]):
+            upper_color[0] = upper_color[0] - 1;
+        print()
+        print('Upper hue: ', upper_color[0])
+    elif key == 74: # 'J' increase upper hue
+        if (upper_color[0] < 255):
+            upper_color[0] = upper_color[0] + 1;
+        print()
+        print('Upper hue: ', upper_color[0])
 
-    if (currentImg == imgLength-1 ):
-         currentImg = 0
+
+    elif key == 115: # 's' decrease lower saturation
+        if (lower_color[1] > 0):
+            lower_color[1] = lower_color[1] - 1;
+        print()
+        print('Lower saturation: ', lower_color[1])
+    elif key == 83: # 'S' increase lower saturation
+        if (lower_color[1] < upper_color[1]):
+            lower_color[1] = lower_color[1] + 1;
+        print()
+        print('Lower saturation: ', lower_color[1])
+    elif key == 100: # 'd' decrease upper saturation
+        if (upper_color[1] > lower_color[1]):
+            upper_color[1] = upper_color[1] - 1;
+        print()
+        print('Upper saturation: ', upper_color[1])
+    elif key == 68: # 'D' increase upper saturation
+        if (upper_color[1] < 255):
+            upper_color[1] = upper_color[1] + 1;
+        print()
+        print('Upper saturation: ', upper_color[1])
+
+
+    elif key == 118: # 'v' decrease lower hue value
+        if (lower_color[2] > 0):
+            lower_color[2] = lower_color[2] - 1;
+        print()
+        print('Lower value: ', lower_color[2])
+    elif key == 86: # 'V' increase lower hue value
+        if (lower_color[2] < upper_color[2]):
+            lower_color[2] = lower_color[2] + 1;
+        print()
+        print('Lower value: ', lower_color[2])
+    elif key == 98: # 'b' decrease upper hue value
+        if (upper_color[2] > lower_color[2]):
+            upper_color[2] = upper_color[2] - 1;
+        print()
+        print('Upper value: ', upper_color[2])
+    elif key == 66: # 'B' increase upper hue value
+        if (upper_color[2] < 255):
+            upper_color[2] = upper_color[2] + 1
+        print()
+        print('Upper value: ', upper_color[2])
+
+    elif key == 109: # 'm' print hue, saturation, value bounds for mask
+        print()
+        print('Color bounds for ')
+        if color_is_yellow == True:
+            print('YELLOW:')
+        else:
+            print('GREEN:')
+        print('Hue:        [', lower_color[0], ',', upper_color[1], ']')
+        print('Saturation: [', lower_color[1], ',', upper_color[1], ']')
+        print('Value:      [', lower_color[2], ',', upper_color[2], ']')
+
+    elif key == 99: # 'c' toogle between yellow and green
+        color_is_yellow = not(color_is_yellow)
+        if color_is_yellow == True: # yellow
+            lower_color = lower_yellow
+            upper_color = upper_yellow
+        else: # green
+            lower_color = lower_green
+            upper_color = upper_green
+        print()
+        print('color_is_yellow: ', color_is_yellow)
+
+
+    elif key == 107: # 'k'
+        #intMaskMethod = 1
+        print()
+        print('To be implemented')
+    elif key == 109: # 'm'
+        #intMaskMethod = 2
+        print()
+        print('To be implemented')
+    elif key == 32: # space
+        print()
+        print('...repeat...')
+    else:
+        print ("Unrecognized key: ", key)
+
+
+
+    #currentImg += 1
+    #print(imgLength)
+
+    #if (currentImg == imgLength-1 ):
+    #     currentImg = 0
 
     img = images[currentImg]
 
