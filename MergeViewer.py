@@ -702,64 +702,64 @@ while True:
         print()
         print('Lower hue: ', lower_color[0])
     elif key == 72: # 'H' increase lower hue
-        if (lower_yellow[0] < upper_yellow[0]):
-            lower_yellow[0] = lower_yellow[0] + 1;
+        if (lower_color[0] < upper_color[0]):
+            lower_color[0] = lower_color[0] + 1;
         print()
-        print('Lower hue: ', lower_yellow[0])
+        print('Lower hue: ', lower_color[0])
     elif key == 106: # 'j' decrease upper hue
-        if (upper_yellow[0] > lower_yellow[0]):
-            upper_yellow[0] = upper_yellow[0] - 1;
+        if (upper_color[0] > lower_color[0]):
+            upper_color[0] = upper_color[0] - 1;
         print()
-        print('Upper hue: ', upper_yellow[0])
+        print('Upper hue: ', upper_color[0])
     elif key == 74: # 'J' increase upper hue
-        if (upper_yellow[0] < 255):
-            upper_yellow[0] = upper_yellow[0] + 1;
+        if (upper_color[0] < 255):
+            upper_color[0] = upper_color[0] + 1;
         print()
-        print('Upper hue: ', upper_yellow[0])
+        print('Upper hue: ', upper_color[0])
 
 
     elif key == 115: # 's' decrease lower saturation
-        if (lower_yellow[1] > 0):
-            lower_yellow[1] = lower_yellow[1] - 1;
+        if (lower_color[1] > 0):
+            lower_color[1] = lower_color[1] - 1;
         print()
-        print('Lower saturation: ', lower_yellow[1])
+        print('Lower saturation: ', lower_color[1])
     elif key == 83: # 'S' increase lower saturation
-        if (lower_yellow[1] < upper_yellow[1]):
-            lower_yellow[1] = lower_yellow[1] + 1;
+        if (lower_color[1] < upper_color[1]):
+            lower_color[1] = lower_color[1] + 1;
         print()
-        print('Lower saturation: ', lower_yellow[1])
+        print('Lower saturation: ', lower_color[1])
     elif key == 100: # 'd' decrease upper saturation
-        if (upper_yellow[1] > lower_yellow[1]):
-            upper_yellow[1] = upper_yellow[1] - 1;
+        if (upper_color[1] > lower_color[1]):
+            upper_color[1] = upper_color[1] - 1;
         print()
-        print('Upper saturation: ', upper_yellow[1])
+        print('Upper saturation: ', upper_color[1])
     elif key == 68: # 'D' increase upper saturation
-        if (upper_yellow[1] < 255):
-            upper_yellow[1] = upper_yellow[1] + 1;
+        if (upper_color[1] < 255):
+            upper_color[1] = upper_color[1] + 1;
         print()
-        print('Upper saturation: ', upper_yellow[1])
+        print('Upper saturation: ', upper_color[1])
 
 
     elif key == 118: # 'v' decrease lower hue value
-        if (lower_yellow[2] > 0):
-            lower_yellow[2] = lower_yellow[2] - 1;
+        if (lower_color[2] > 0):
+            lower_color[2] = lower_color[2] - 1;
         print()
-        print('Lower value: ', lower_yellow[2])
+        print('Lower value: ', lower_color[2])
     elif key == 86: # 'V' increase lower hue value
-        if (lower_yellow[2] < upper_yellow[2]):
-            lower_yellow[2] = lower_yellow[2] + 1;
+        if (lower_color[2] < upper_color[2]):
+            lower_color[2] = lower_color[2] + 1;
         print()
-        print('Lower value: ', lower_yellow[2])
+        print('Lower value: ', lower_color[2])
     elif key == 98: # 'b' decrease upper hue value
-        if (upper_yellow[2] > lower_yellow[2]):
-            upper_yellow[2] = upper_yellow[2] - 1;
+        if (upper_color[2] > lower_color[2]):
+            upper_color[2] = upper_color[2] - 1;
         print()
-        print('Upper value: ', upper_yellow[2])
+        print('Upper value: ', upper_color[2])
     elif key == 66: # 'B' increase upper hue value
-        if (upper_yellow[2] < 255):
-            upper_yellow[2] = upper_yellow[2] + 1
+        if (upper_color[2] < 255):
+            upper_color[2] = upper_color[2] + 1
         print()
-        print('Upper value: ', upper_yellow[2])
+        print('Upper value: ', upper_color[2])
 
     elif key == 109: # 'm' print hue, saturation, value bounds for mask
         print()
