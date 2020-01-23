@@ -61,7 +61,7 @@ def load_images_from_folder(folder):
 #images = load_images_from_folder("./OuterTargetHalfScale")
 #images = load_images_from_folder("./PowerCell25Scale")
 #images = load_images_from_folder("./PowerCellImages")
-images = load_images_from_folder("./PowerCellFullScale")
+images = load_images_from_folder(./PowerCellFullScale)
 
 
 image_height, image_width = images[0].shape[:2]
