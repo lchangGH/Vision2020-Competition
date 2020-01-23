@@ -638,7 +638,7 @@ def draw_circle(event,x,y,flags,param):
 
 Driver = False
 Tape = False
-PowerCell = True
+PowerCell = True 
 ControlPanel = False
 
 
@@ -660,7 +660,7 @@ while True:
 
         if Tape:
 
-            threshold = threshold_video(lower_green, upper_green, frame)
+            threshold = threshold_videho(lower_green, upper_green, frame)
             processed = findTargets(frame, threshold)
 
         else:
@@ -680,7 +680,7 @@ while True:
     cv2.imshow("processed", processed)
     cv2.setMouseCallback('raw', draw_circle)
 
-    key = cv2.waitKey(0)
+    key = cv2.waitKeyEx(0) & 0xFF
     print(key) 
 
     if key == 27: # <ESC> user wants to exit
@@ -696,66 +696,66 @@ while True:
         else:
             currentImg = currentImg + 1
 
-    elif key == 104: # 'h' decrease lower hue
+    elif key == ord('h'): # 'h' decrease lower hue
         if (lower_color[0] > 0):
             lower_color[0] = lower_color[0] - 1;
         print()
         print('Lower hue: ', lower_color[0])
-    elif key == 72: # 'H' increase lower hue
+    elif key == ord('j'): # 'H' increase lower hue
         if (lower_color[0] < upper_color[0]):
             lower_color[0] = lower_color[0] + 1;
         print()
         print('Lower hue: ', lower_color[0])
-    elif key == 106: # 'j' decrease upper hue
+    elif key == ord('k'): # 'j' decrease upper hue
         if (upper_color[0] > lower_color[0]):
             upper_color[0] = upper_color[0] - 1;
         print()
         print('Upper hue: ', upper_color[0])
-    elif key == 74: # 'J' increase upper hue
+    elif key == ord('l'): # 'J' increase upper hue
         if (upper_color[0] < 255):
             upper_color[0] = upper_color[0] + 1;
         print()
         print('Upper hue: ', upper_color[0])
 
 
-    elif key == 115: # 's' decrease lower saturation
+    elif key == ord('s'): # 's' decrease lower saturation
         if (lower_color[1] > 0):
             lower_color[1] = lower_color[1] - 1;
         print()
         print('Lower saturation: ', lower_color[1])
-    elif key == 83: # 'S' increase lower saturation
+    elif key == ord('d'): # 'S' increase lower saturation
         if (lower_color[1] < upper_color[1]):
             lower_color[1] = lower_color[1] + 1;
         print()
         print('Lower saturation: ', lower_color[1])
-    elif key == 100: # 'd' decrease upper saturation
+    elif key == ord('f'): # 'd' decrease upper saturation
         if (upper_color[1] > lower_color[1]):
             upper_color[1] = upper_color[1] - 1;
         print()
         print('Upper saturation: ', upper_color[1])
-    elif key == 68: # 'D' increase upper saturation
+    elif key == ord('g'): # 'D' increase upper saturation
         if (upper_color[1] < 255):
             upper_color[1] = upper_color[1] + 1;
         print()
         print('Upper saturation: ', upper_color[1])
 
 
-    elif key == 118: # 'v' decrease lower hue value
+    elif key == ord('x'): # 'v' decrease lower hue value
         if (lower_color[2] > 0):
             lower_color[2] = lower_color[2] - 1;
         print()
         print('Lower value: ', lower_color[2])
-    elif key == 86: # 'V' increase lower hue value
+    elif key == ord('c'): # 'V' increase lower hue value
         if (lower_color[2] < upper_color[2]):
             lower_color[2] = lower_color[2] + 1;
         print()
         print('Lower value: ', lower_color[2])
-    elif key == 98: # 'b' decrease upper hue value
+    elif key == ord('v'): # 'b' decrease upper hue value
         if (upper_color[2] > lower_color[2]):
             upper_color[2] = upper_color[2] - 1;
         print()
         print('Upper value: ', upper_color[2])
-    elif key == 66: # 'B' increase upper hue value
+    elif key == ord('b'): # 'B' increase upper hue value
         if (upper_color[2] < 255):
             upper_color[2] = upper_color[2] + 1
         print()
