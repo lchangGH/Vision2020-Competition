@@ -101,7 +101,7 @@ class WebcamVideoStream:
 
         # Automatically sets exposure to 0 to track tape
         self.webcam = camera
-        self.webcam.setExposureManual(35)
+        self.webcam.setExposureManual(39)
         self.webcam.setExposureAuto()
 
         # Some booleans so that we don't keep setting exposure over and over to the same value
@@ -151,7 +151,8 @@ class WebcamVideoStream:
                 if self.autoExpose != self.prevValue:
 
                     self.webcam.setExposureManual(50)
-                    self.webcam.setExposureManual(20)
+                    self.webcam.setExposureManual(35)
+                    self.webcam.setExposureAuto()
                     #print("Not driver mode")
                     self.prevValue = self.autoExpose
 
@@ -178,17 +179,17 @@ ImageCounter = 0
 
 # Angles in radians
 
-# image size ratioed to 16:9
-image_width = 416
-image_height = 240
+# image size ratioed to 4:3
+image_width = 640
+image_height = 480
 
 # Lifecam 3000 from datasheet
 # Datasheet: https://dl2jx7zfbtwvr.cloudfront.net/specsheets/WEBC1010.pdf
 diagonalView = math.radians(68.5)
 
 # 16:9 aspect ratio
-horizontalAspect = 16
-verticalAspect = 9
+horizontalAspect = 4
+verticalAspect = 3
 
 # Reasons for using diagonal aspect is to calculate horizontal field of view.
 diagonalAspect = math.hypot(horizontalAspect, verticalAspect)
@@ -208,8 +209,9 @@ yellow_blur = 27
 lower_green = np.array([40, 75, 75])
 upper_green = np.array([96, 255, 255])
 
-lower_yellow = np.array([28, 50, 80])
-upper_yellow = np.array([38, 120, 120])
+lower_yellow = np.array([15, 205, 100])
+upper_yellow = np.array([27, 255, 255])
+
 
 switch = 1
 
@@ -306,27 +308,35 @@ def findPowerCell(frame, mask):
     return image
 
 
-# Draws Contours and finds center and yaw of orange ball
+#Draws Contours and finds center and yaw of orange ball
 # centerX is center x coordinate of image
 # centerY is center y coordinate of image
 def findBall(contours, image, centerX, centerY):
     screenHeight, screenWidth, channels = image.shape
     # Seen vision targets (correct angle, adjacent to each other)
-    cargo = []
-    
+    #cargo = []
+
     if len(contours) > 0:
         # Sort contours by area size (biggest to smallest)
         cntsSorted = sorted(contours, key=lambda x: cv2.contourArea(x), reverse=True)
         cntHeight = 0
-        biggestCargo = []
+        biggestPowerCell = []
         for cnt in cntsSorted:
             x, y, w, h = cv2.boundingRect(cnt)
+
+            #print("bounding rec height: " + str(h))
+            #print("bounding rec width: " + str(w))
+            print("bounding rec x: " + str(y))
+            print("bounding rec y: " + str(x))
+            print("bounding rec height: " + str(h))
+            print("bounding rec width: " + str(w))
+        
             cntHeight = h
             aspect_ratio = float(w) / h
             # Get moments of contour; mainly for centroid
             M = cv2.moments(cnt)
             # Get convex hull (bounding polygon on contour)
-            hull = cv2.convexHull(cnt)
+            #hull = cv2.convexHull(cnt)
             # Calculate Contour area
             cntArea = cv2.contourArea(cnt)
             # Filters contours based off of size
@@ -338,17 +348,17 @@ def findBall(contours, image, centerX, centerY):
                     cy = int(M["m01"] / M["m00"])
                 else:
                     cx, cy = 0, 0
-                if (len(biggestCargo) < 3):
+                if (len(biggestPowerCell) < 3):
 
                     ##### DRAWS CONTOUR######
                     # Gets rotated bounding rectangle of contour
                     rect = cv2.minAreaRect(cnt)
                     # Creates box around that rectangle
                     box = cv2.boxPoints(rect)
-                    # Not exactly sure
+                    # Covert boxpoints to integer
                     box = np.int0(box)
                     # Draws rotated rectangle
-                    cv2.drawContours(image, [box], 0, (23, 184, 80), 3)
+                    #cv2.drawContours(image, [box], 0, (23, 184, 80), 3)
 
                     # Draws a vertical white line passing through center of contour
                     cv2.line(image, (cx, screenHeight), (cx, 0), (255, 255, 255))
@@ -359,37 +369,69 @@ def findBall(contours, image, centerX, centerY):
                     cv2.drawContours(image, [cnt], 0, (23, 184, 80), 1)
 
                     # Gets the (x, y) and radius of the enclosing circle of contour
-                    (x, y), radius = cv2.minEnclosingCircle(cnt)
+                    #(x, y), radius = cv2.minEnclosingCircle(cnt)
                     # Rounds center of enclosing circle
-                    center = (int(x), int(y))
+                    #center = (int(x), int(y))
                     # Rounds radius of enclosning circle
-                    radius = int(radius)
+                    #radius = int(radius)
                     # Makes bounding rectangle of contour
-                    rx, ry, rw, rh = cv2.boundingRect(cnt)
+                    #rx, ry, rw, rh = cv2.boundingRect(cnt)
+                    #x, y, w, h = cv2.boundingRect(cnt)
 
-                    # Draws countour of bounding rectangle and enclosing circle in green
-                    cv2.rectangle(image, (rx, ry), (rx + rw, ry + rh), (23, 184, 80), 1)
-
-                    cv2.circle(image, center, radius, (23, 184, 80), 1)
+                    # Draws contour of bounding rectangle in red
+                    #cv2.rectangle(image, (rx, ry), (rx + rw, ry + rh), (0, 0, 255), 1)
+                    cv2.rectangle(image, (x, y), (x + w, y + h), (0, 0, 255), 1)
+                   
+                    # Draws circle in cyan
+                    #cv2.circle(image, center, radius, (255, 255,0), 1)
 
                     # Appends important info to array
-                    if [cx, cy, cnt, cntHeight] not in biggestCargo:
-                        biggestCargo.append([cx, cy, cnt, cntHeight])
+                    if [cx, cy, cnt, cntHeight] not in biggestPowerCell:
+                        biggestPowerCell.append([cx, cy, cnt, cntHeight])
 
-        # Check if there are cargo seen
-        if (len(biggestCargo) > 0):
+        # Check if there are PowerCell seen
+        if (len(biggestPowerCell) > 0):
             # pushes that it sees cargo to network tables
-            networkTable.putBoolean("cargoDetected", True)
+
             finalTarget = []
-            # Sorts targets based on x coords to break any angle tie
-            biggestCargo.sort(key=lambda x: math.fabs(x[0]))
-            closestCargo = min(biggestCargo, key=lambda x: (math.fabs(x[0] - centerX)))
-            xCoord = closestCargo[0]
+            # Sorts targets based on largest height
+            biggestPowerCell.sort(key=lambda height: math.fabs(height[3]))
+
+            #sorts closestPowerCell - contains center-x, center-y, contour and contour height from the
+            #bounding rectangle.  The closest one has the largest height
+            closestPowerCell = min(biggestPowerCell, key=lambda height: (math.fabs(height[3] - centerX)))
+
+            # extreme points
+            leftmost = tuple(closestPowerCell[2][closestPowerCell[2][:,:,0].argmin()][0])
+            rightmost = tuple(closestPowerCell[2][closestPowerCell[2][:,:,0].argmax()][0])
+            topmost = tuple(closestPowerCell[2][closestPowerCell[2][:,:,1].argmin()][0])
+            bottommost = tuple(closestPowerCell[2][closestPowerCell[2][:,:,1].argmax()][0])
+
+            # draw extreme points
+            # from https://www.pyimagesearch.com/2016/04/11/finding-extreme-points-in-contours-with-opencv/
+            cv2.circle(image, leftmost, 12, (0,255,0), -1)
+            cv2.circle(image, rightmost, 12, (0,0,255), -1)
+            cv2.circle(image, topmost, 12, (255,255,255), -1)
+            cv2.circle(image, bottommost, 12, (255,0,0), -1)
+            print('extreme points', leftmost,rightmost,topmost,bottommost)
+
+            print("topmost: " + str(topmost[0]))
+            print("bottommost: " + str(bottommost[0]))
+            #xCoord of the closest ball will be the x position differences between the topmost and 
+            #bottom most points
+            if (topmost[0] > bottommost[0]):
+                xCoord = int(round((topmost[0]-bottommost[0])/2)+bottommost[0])
+            else: 
+                xCoord = int(round((bottommost[0]-topmost[0])/2)+topmost[0])
+
+            print(xCoord)
+            if (aspect_ratio > 0.9 and aspect_ratio < 1.1):
+                xCoord = closestPowerCell[0]
+
             finalTarget.append(calculateYaw(xCoord, centerX, H_FOCAL_LENGTH))
-            finalTarget.append(calculateDistWPILib(closestCargo[3]))
-            print("Yaw: " + str(finalTarget[0]))
-            networkTable.putString("Yaw", finalTarget[0])
-            networkTable.putString("Dist:", finalTarget[1])
+            finalTarget.append(calculateDistWPILib(closestPowerCell[3]))
+            #print("Yaw: " + str(finalTarget[0]))
+
             # Puts the yaw on screen
             # Draws yaw of target + line where center of target is
             cv2.putText(image, "Yaw: " + str(finalTarget[0]), (40, 40), cv2.FONT_HERSHEY_COMPLEX, .6,
@@ -400,16 +442,13 @@ def findBall(contours, image, centerX, centerY):
 
             currentAngleError = finalTarget[0]
             # pushes cargo angle to network tables
-            networkTable.putNumber("cargoYaw", currentAngleError)
-            networkTable.putNumber("cargoDist", finalTarget[1])
 
-        else:
-            # pushes that it doesn't see cargo to network tables
-            networkTable.putBoolean("cargoDetected", False)
+
 
         cv2.line(image, (round(centerX), screenHeight), (round(centerX), 0), (255, 255, 255), 2)
 
         return image
+
 
 
 # Draws Contours and finds center and yaw of vision targets
@@ -682,9 +721,7 @@ def calculateDistance(heightOfCamera, heightOfTarget, pitch):
 avg = [0 for i in range(0, 8)]
 
 def calculateDistWPILib(cntHeight):
-    global image_height, avg, networkTable
-
-
+    global image_height, avg
 
     for cnt in avg:
         if cnt == 0:
@@ -696,23 +733,30 @@ def calculateDistWPILib(cntHeight):
     for cnt in avg:
         PIX_HEIGHT += cnt
 
+    PIX_HEIGHT = PIX_HEIGHT / len(avg)
 
-    PIX_HEIGHT = PIX_HEIGHT/len(avg)
+    print (PIX_HEIGHT)
 
-    networkTable.putNumber("Pixel height", PIX_HEIGHT)
 
-    #print (PIX_HEIGHT, avg)  #print("The contour height is: ", cntHeight)
-    TARGET_HEIGHT = 0.5
 
-    VIEWANGLE = math.atan((TARGET_HEIGHT * image_height) / (2 * 30.72 * 6))
+    print(PIX_HEIGHT, avg)  # print("The contour height is: ", cntHeight)
 
-    #print("after 2: ", VIEWANGLE)
-    #VIEWANGLE = math.radians(68.5)
+    #TARGET_HEIGHT is actual height (for balls 7/12 7 inches)   
+    TARGET_HEIGHT = 0.583
+
+ 
+    #image height is the y resolution calculated from image size
+    #15.81 was the pixel height of a a ball found at a measured distance (which is 6 feet away)
+    #65 is the pixel height of a scale image 6 feet away
+    KNOWN_OBJECT_PIXEL_HEIGHT = 65
+    KNOWN_OBJECT_DISTANCE = 6
+    VIEWANGLE = math.atan((TARGET_HEIGHT * image_height) / (2 * KNOWN_OBJECT_PIXEL_HEIGHT * KNOWN_OBJECT_DISTANCE))
+
+    # print("after 2: ", VIEWANGLE)
+    # VIEWANGLE = math.radians(68.5)
     distance = ((TARGET_HEIGHT * image_height) / (2 * PIX_HEIGHT * math.tan(VIEWANGLE)))
-    #distance = ((0.02) * distance ** 2) + ((69/ 100) * distance) + (47 / 50)
-    #distance = ((-31/2400) * distance ** 2) + ((1313 / 1200) * distance) - (1 / 20)
-
-    print(distance)
+    # distance = ((0.02) * distance ** 2) + ((69/ 100) * distance) + (47 / 50)
+    # distance = ((-41/450) * distance ** 2) + ((149 / 100) * distance) - (9 / 25)
 
     return distance
 
@@ -940,10 +984,10 @@ if __name__ == "__main__":
     # TOTAL_FRAMES = 200;
     # loop forever
     networkTable.putBoolean("Driver", False)
-    networkTable.putBoolean("Tape", True)
-    networkTable.putBoolean("PowerCell", False)
+    networkTable.putBoolean("Tape", False)
+    networkTable.putBoolean("PowerCell", True)
     networkTable.putBoolean("ControlPanel", False)
-    networkTable.putBoolean("WriteImages", True)
+    networkTable.putBoolean("WriteImages", False)
     networkTable.putBoolean("SendMask", False)
     networkTable.putBoolean("TopCamera", False)
     networkTable.putBoolean("Cam", currentCam)

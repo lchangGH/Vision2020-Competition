@@ -1,5 +1,3 @@
-
-  
 # ----------------------------------------------------------------------------
 # Copyright (c) 2018 FIRST. All Rights Reserved.
 # Open Source Software - may be modified and shared by FRC teams. The code
@@ -65,78 +63,14 @@ def load_images_from_folder(folder):
             images.append(img)
     return images
 
-images = load_images_from_folder("./OuterTargetImages")
-#images = load_images_from_folder("./OuterTargetHalfScale")
-#images = load_images_from_folder("./PowerCell25Scale")
-#images = load_images_from_folder("./PowerCellImages")
-#images = load_images_from_folder("./PowerCellFullScale")
-#images = load_images_from_folder("./PowerCellFullMystery")
-#images = load_images_from_folder("./PowerCellSketchup")
-# ----------------------------------------------------------------------------
-# Copyright (c) 2018 FIRST. All Rights Reserved.
-# Open Source Software - may be modified and shared by FRC teams. The code
-# must be accompanied by the FIRST BSD license file in the root directory of
-# the project.
-
-# My 2020 license: use it as much as you want. Crediting is recommended because it lets me know 
-# that I am being useful.
-# Some parts of pipeline are based on 2019 code created by the Screaming Chickens 3997
-
-# This is meant to be used in conjuction with WPILib Raspberry Pi image: https://github.com/wpilibsuite/FRCVision-pi-gen
-# ----------------------------------------------------------------------------
-
-import json
-import time
-import sys
-from threading import Thread
-import random
-
-
-import cv2
-import numpy as np
-
-import math
-
-import os
-
-########### SET RESOLUTION TO 256x144 !!!! ############
-
-# import the necessary packages
-import datetime
-
-
-# Class to examine Frames per second of camera stream. Currently not used.
-
-
-###################### PROCESSING OPENCV ################################
-
-# counts frames for writing images
-frameStop = 0
-ImageCounter = 0
-
-# Angles in radians
-
-# image size ratioed to 16:9
-
-
-# Lifecam 3000 from datasheet
-# Datasheet: https://dl2jx7zfbtwvr.cloudfront.net/specsheets/WEBC1010.pdf
-
-def load_images_from_folder(folder):
-    images = []
-    for filename in os.listdir(folder):
-        img = cv2.imread(os.path.join(folder,filename))
-        if img is not None:
-            images.append(img)
-    return images
-
 #images = load_images_from_folder("./OuterTargetImages")
 #images = load_images_from_folder("./OuterTargetHalfScale")
 #images = load_images_from_folder("./PowerCell25Scale")
 #images = load_images_from_folder("./PowerCellImages")
 #images = load_images_from_folder("./PowerCellFullScale")
 #images = load_images_from_folder("./PowerCellFullMystery")
-images = load_images_from_folder("./PowerCellSketchup")
+#images = load_images_from_folder("./PowerCellSketchup")
+images = load_images_from_folder("./LifeCamPhotos")
 
 # finds height/width of camera frame (eg. 640 width, 480 height)
 image_height, image_width = images[0].shape[:2]
@@ -163,14 +97,14 @@ V_FOCAL_LENGTH = image_height / (2 * math.tan((verticalView / 2)))
 # blurs have to be odd
 green_blur = 1
 orange_blur = 27
-yellow_blur = 3
+yellow_blur = 1
 
 # define range of green of retroreflective tape in HSV
 lower_green = np.array([40, 75, 75])
 upper_green = np.array([96, 255, 255])
 
-lower_yellow = np.array([20, 35, 100])
-upper_yellow = np.array([60, 255, 255])
+lower_yellow = np.array([15, 205, 100])
+upper_yellow = np.array([27, 255, 255])
 
 switch = 1
 
@@ -271,7 +205,7 @@ def findBall(contours, image, centerX, centerY):
 
     if len(contours) > 0:
         # Sort contours by area size (biggest to smallest)
-        cntsSorted = sorted(contours, key=lambda x: cv2.contourArea(x), reverse=True)
+        cntsSorted = sorted(contours, key=lambda x: cv2.contourArea(x), reverse=True)[:5]
         cntHeight = 0
         biggestPowerCell = []
         for cnt in cntsSorted:
