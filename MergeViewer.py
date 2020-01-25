@@ -62,7 +62,8 @@ def load_images_from_folder(folder):
 #images = load_images_from_folder("./PowerCellImages")
 #images = load_images_from_folder("./PowerCellFullScale")
 #images = load_images_from_folder("./PowerCellFullMystery")
-images = load_images_from_folder("./PowerCellSketchup")
+#images = load_images_from_folder("./PowerCellSketchup")
+images = load_images_from_folder("./LifeCamPhotos")
 
 # finds height/width of camera frame (eg. 640 width, 480 height)
 image_height, image_width = images[0].shape[:2]
@@ -89,14 +90,14 @@ V_FOCAL_LENGTH = image_height / (2 * math.tan((verticalView / 2)))
 # blurs have to be odd
 green_blur = 1
 orange_blur = 27
-yellow_blur = 3
+yellow_blur = 1
 
 # define range of green of retroreflective tape in HSV
 lower_green = np.array([40, 75, 75])
 upper_green = np.array([96, 255, 255])
 
-lower_yellow = np.array([20, 35, 100])
-upper_yellow = np.array([60, 255, 255])
+lower_yellow = np.array([15, 205, 100])
+upper_yellow = np.array([27, 255, 255])
 
 # initialize some variable used later for user input
 color_is_yellow = True
@@ -203,7 +204,7 @@ def findBall(contours, image, centerX, centerY):
 
     if len(contours) > 0:
         # Sort contours by area size (biggest to smallest)
-        cntsSorted = sorted(contours, key=lambda x: cv2.contourArea(x), reverse=True)
+        cntsSorted = sorted(contours, key=lambda x: cv2.contourArea(x), reverse=True)[:5]
         cntHeight = 0
         biggestPowerCell = []
         for cnt in cntsSorted:

@@ -101,7 +101,7 @@ class WebcamVideoStream:
 
         # Automatically sets exposure to 0 to track tape
         self.webcam = camera
-        self.webcam.setExposureManual(35)
+        self.webcam.setExposureManual(39)
         self.webcam.setExposureAuto()
 
         # Some booleans so that we don't keep setting exposure over and over to the same value
@@ -151,7 +151,8 @@ class WebcamVideoStream:
                 if self.autoExpose != self.prevValue:
 
                     self.webcam.setExposureManual(50)
-                    self.webcam.setExposureManual(20)
+                    self.webcam.setExposureManual(35)
+                    self.webcam.setExposureAuto()
                     #print("Not driver mode")
                     self.prevValue = self.autoExpose
 
@@ -178,17 +179,17 @@ ImageCounter = 0
 
 # Angles in radians
 
-# image size ratioed to 16:9
-image_width = 416
-image_height = 240
+# image size ratioed to 4:3
+image_width = 640
+image_height = 480
 
 # Lifecam 3000 from datasheet
 # Datasheet: https://dl2jx7zfbtwvr.cloudfront.net/specsheets/WEBC1010.pdf
 diagonalView = math.radians(68.5)
 
 # 16:9 aspect ratio
-horizontalAspect = 16
-verticalAspect = 9
+horizontalAspect = 4
+verticalAspect = 3
 
 # Reasons for using diagonal aspect is to calculate horizontal field of view.
 diagonalAspect = math.hypot(horizontalAspect, verticalAspect)
@@ -208,8 +209,8 @@ yellow_blur = 1
 lower_green = np.array([40, 75, 75])
 upper_green = np.array([96, 255, 255])
 
-lower_yellow = np.array([0, 214, 0])
-upper_yellow = np.array([40, 255, 255])
+lower_yellow = np.array([15, 205, 100])
+upper_yellow = np.array([27, 255, 255])
 
 
 switch = 1
@@ -983,10 +984,10 @@ if __name__ == "__main__":
     # TOTAL_FRAMES = 200;
     # loop forever
     networkTable.putBoolean("Driver", False)
-    networkTable.putBoolean("Tape", True)
-    networkTable.putBoolean("PowerCell", False)
+    networkTable.putBoolean("Tape", False)
+    networkTable.putBoolean("PowerCell", True)
     networkTable.putBoolean("ControlPanel", False)
-    networkTable.putBoolean("WriteImages", True)
+    networkTable.putBoolean("WriteImages", False)
     networkTable.putBoolean("SendMask", False)
     networkTable.putBoolean("TopCamera", False)
     networkTable.putBoolean("Cam", currentCam)
