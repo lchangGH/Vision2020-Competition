@@ -56,15 +56,15 @@ def load_images_from_folder(folder):
             images.append(img)
     return images
 
-#images = load_images_from_folder("./OuterTargetImages")
+images = load_images_from_folder("./OuterTargetImages")
 #images = load_images_from_folder("./OuterTargetHalfScale")
 #images = load_images_from_folder("./PowerCell25Scale")
 #mages = load_images_from_folder("./PowerCellImages")
-images = load_images_from_folder("./PowerCellFullScale")
+#images = load_images_from_folder("./PowerCellFullScale")
 
 # finds height/width of camera frame (eg. 640 width, 480 height)
 image_height, image_width = images[0].shape[:2]
-print(image_height, image_width)
+print("Image Size:" + str(image_height), str(image_width))
 
 # FOV of microsoft camera (68.5 is camera spec)
 diagonalView = math.radians(68.5)
@@ -129,6 +129,7 @@ def threshold_video(lower_color, upper_color, blur):
     s = threshold_range(s, lower_color[1], upper_color[1])
     v = threshold_range(v, lower_color[2], upper_color[2])
     combined_mask = cv2.bitwise_and(h, cv2.bitwise_and(s, v))
+
     
 
     # hold the HSV image to get only red colors
@@ -136,6 +137,7 @@ def threshold_video(lower_color, upper_color, blur):
 
     # Returns the masked imageBlurs video to smooth out image
 
+    cv2.imshow("combined_mask", combined_mask)
     return combined_mask
 
 
@@ -538,7 +540,7 @@ def calculateDistWPILib(cntHeight):
 
     PIX_HEIGHT = PIX_HEIGHT / len(avg)
 
-    print (PIX_HEIGHT)
+    print ("PIX_HEIGHT:" + str(PIX_HEIGHT))
 
 
 
@@ -630,8 +632,8 @@ def draw_circle(event,x,y,flags,param):
 
 
 Driver = False
-Tape = False
-PowerCell = True
+Tape = True
+PowerCell = False
 ControlPanel = False
 
 
@@ -677,16 +679,17 @@ while True:
 
     if key == 27:
         break
+    cv2.destroyAllWindows()
 
     currentImg += 1
-    print(imgLength)
+    print("imgLength" + str(imgLength))
 
     if (currentImg == imgLength-1 ):
          currentImg = 0
 
     img = images[currentImg]
 
-
+cv2.destroyAllWindows()
 
 
 
