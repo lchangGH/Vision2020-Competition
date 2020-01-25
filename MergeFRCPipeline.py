@@ -202,7 +202,7 @@ V_FOCAL_LENGTH = image_height / (2 * math.tan((verticalView / 2)))
 # blurs have to be odd
 green_blur = 1
 orange_blur = 27
-yellow_blur = 27
+yellow_blur = 1
 
 # define range of green of retroreflective tape in HSV
 lower_green = np.array([40, 75, 75])
@@ -304,7 +304,7 @@ def findPowerCell(frame, mask):
     if len(contours) != 0:
         image = findBall(contours, image, centerX, centerY)
     # Shows the contours overlayed on the original video
-    return image
+    return mask
 
 
 #Draws Contours and finds center and yaw of orange ball
