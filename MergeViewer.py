@@ -59,6 +59,7 @@ def load_images_from_folder(folder):
 #images = load_images_from_folder("./OuterTargetImages")
 #images = load_images_from_folder("./OuterTargetHalfScale")
 #images = load_images_from_folder("./PowerCell25Scale")
+
 #mages = load_images_from_folder("./PowerCellImages")
 images = load_images_from_folder("./PowerCellFullScale")
 
