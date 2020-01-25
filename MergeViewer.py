@@ -72,6 +72,71 @@ images = load_images_from_folder("./OuterTargetImages")
 #images = load_images_from_folder("./PowerCellFullScale")
 #images = load_images_from_folder("./PowerCellFullMystery")
 #images = load_images_from_folder("./PowerCellSketchup")
+# ----------------------------------------------------------------------------
+# Copyright (c) 2018 FIRST. All Rights Reserved.
+# Open Source Software - may be modified and shared by FRC teams. The code
+# must be accompanied by the FIRST BSD license file in the root directory of
+# the project.
+
+# My 2020 license: use it as much as you want. Crediting is recommended because it lets me know 
+# that I am being useful.
+# Some parts of pipeline are based on 2019 code created by the Screaming Chickens 3997
+
+# This is meant to be used in conjuction with WPILib Raspberry Pi image: https://github.com/wpilibsuite/FRCVision-pi-gen
+# ----------------------------------------------------------------------------
+
+import json
+import time
+import sys
+from threading import Thread
+import random
+
+
+import cv2
+import numpy as np
+
+import math
+
+import os
+
+########### SET RESOLUTION TO 256x144 !!!! ############
+
+# import the necessary packages
+import datetime
+
+
+# Class to examine Frames per second of camera stream. Currently not used.
+
+
+###################### PROCESSING OPENCV ################################
+
+# counts frames for writing images
+frameStop = 0
+ImageCounter = 0
+
+# Angles in radians
+
+# image size ratioed to 16:9
+
+
+# Lifecam 3000 from datasheet
+# Datasheet: https://dl2jx7zfbtwvr.cloudfront.net/specsheets/WEBC1010.pdf
+
+def load_images_from_folder(folder):
+    images = []
+    for filename in os.listdir(folder):
+        img = cv2.imread(os.path.join(folder,filename))
+        if img is not None:
+            images.append(img)
+    return images
+
+#images = load_images_from_folder("./OuterTargetImages")
+#images = load_images_from_folder("./OuterTargetHalfScale")
+#images = load_images_from_folder("./PowerCell25Scale")
+#images = load_images_from_folder("./PowerCellImages")
+#images = load_images_from_folder("./PowerCellFullScale")
+#images = load_images_from_folder("./PowerCellFullMystery")
+images = load_images_from_folder("./PowerCellSketchup")
 
 # finds height/width of camera frame (eg. 640 width, 480 height)
 image_height, image_width = images[0].shape[:2]
@@ -408,7 +473,7 @@ def findTape(contours, image, centerX, centerY):
                     box = np.int0(box)
                     # Draws rotated rectangle
 
-                    cv2.drawContours(image, [box], 0, Blue, 3)
+                    cv2.drawContours(image, [box], 0, (23, 184, 80), 3)
 
                     # Calculates yaw of contour (horizontal position in degrees)
                     yaw = calculateYaw(cx, centerX, H_FOCAL_LENGTH)
@@ -418,12 +483,12 @@ def findTape(contours, image, centerX, centerY):
                     dist = calculateDistance(1, 2, pitch);
 
                     # Draws a vertical white line passing through center of contour
-                    #cv2.line(image, (cx, screenHeight), (cx, 0), Red, 2)
+                    cv2.line(image, (cx, screenHeight), (cx, 0), (255, 255, 255))
                     # Draws a white circle at center of contour
-                    cv2.circle(image, (cx, cy), 10, Orange, 2)
+                    cv2.circle(image, (cx, cy), 6, (255, 255, 255))
 
                     # Draws the contours
-                    #cv2.drawContours(image, [cnt], 0, Yellow, 3)
+                    cv2.drawContours(image, [cnt], 0, (23, 184, 80), 1)
 
                     # Gets the (x, y) and radius of the enclosing circle of contour
                     (x, y), radius = cv2.minEnclosingCircle(cnt)
@@ -435,9 +500,9 @@ def findTape(contours, image, centerX, centerY):
                     rx, ry, rw, rh = cv2.boundingRect(cnt)
                     boundingRect = cv2.boundingRect(cnt)
                     # Draws countour of bounding rectangle and enclosing circle in green
-                    #cv2.rectangle(image, (rx, ry), (rx + rw, ry + rh), Blue, 3)
+                    cv2.rectangle(image, (rx, ry), (rx + rw, ry + rh), (23, 184, 80), 1)
 
-                    cv2.circle(image, center, radius, Purple, 3)
+                    cv2.circle(image, center, radius, (23, 184, 80), 1)
 
                     # Appends important info to array
                     if [cx, cy, rotation, cnt, cntHeight] not in biggestCnts:
@@ -652,7 +717,7 @@ def getEllipseRotation(image, cnt):
         # Maps rotation to (-90 to 90). Makes it easier to tell direction of slant
         rotation = translateRotation(rotation, widthE, heightE)
 
-        #cv2.ellipse(image, ellipse, (23, 184, 80), 3)
+        cv2.ellipse(image, ellipse, (23, 184, 80), 3)
         return rotation
     except:
         # Gets rotated bounding rectangle of contour
@@ -690,8 +755,8 @@ def draw_circle(event,x,y,flags,param):
 
 
 Driver = False
-Tape = True
-PowerCell = False
+Tape = False
+PowerCell = True
 ControlPanel = False
 
 
@@ -736,6 +801,15 @@ while True:
     print(key) 
 
     if key == 27:
+        break
+
+    currentImg += 1
+    print(imgLength)
+
+    if (currentImg == imgLength-1 ):
+         currentImg = 0
+
+    img = images[currentImg]
         break
 
     currentImg += 1
