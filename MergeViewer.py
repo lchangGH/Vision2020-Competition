@@ -25,7 +25,7 @@ import math
 
 import os
 
-########### SET RESOLUTION TO 256x144 !!!! ############
+########### SET RESOLUTION TO 640x480 !!!! ############
 
 # import the necessary packages
 import datetime
@@ -42,7 +42,7 @@ ImageCounter = 0
 
 # Angles in radians
 
-# image size ratioed to 16:9
+# image size ratioed to 4:3
 
 
 # Lifecam 3000 from datasheet
@@ -62,8 +62,8 @@ def load_images_from_folder(folder):
 #images = load_images_from_folder("./PowerCellImages")
 #images = load_images_from_folder("./PowerCellFullScale")
 #images = load_images_from_folder("./PowerCellFullMystery")
-#images = load_images_from_folder("./PowerCellSketchup")
-images = load_images_from_folder("./LifeCamPhotos")
+images = load_images_from_folder("./PowerCellSketchup")
+#images = load_images_from_folder("./LifeCamPhotos")
 
 # finds height/width of camera frame (eg. 640 width, 480 height)
 image_height, image_width = images[0].shape[:2]
@@ -96,8 +96,8 @@ yellow_blur = 1
 lower_green = np.array([40, 75, 75])
 upper_green = np.array([96, 255, 255])
 
-lower_yellow = np.array([15, 205, 100])
-upper_yellow = np.array([27, 255, 255])
+lower_yellow = np.array([14, 150, 100])
+upper_yellow = np.array([30, 255, 255])
 
 # initialize some variable used later for user input
 color_is_yellow = True
@@ -212,8 +212,8 @@ def findBall(contours, image, centerX, centerY):
 
             #print("bounding rec height: " + str(h))
             #print("bounding rec width: " + str(w))
-            print("bounding rec x: " + str(y))
-            print("bounding rec y: " + str(x))
+            #print("bounding rec x: " + str(y))
+            #print("bounding rec y: " + str(x))
             print("bounding rec height: " + str(h))
             print("bounding rec width: " + str(w))
         
@@ -273,7 +273,7 @@ def findBall(contours, image, centerX, centerY):
 
                     # Appends important info to array
                     if [cx, cy, cnt, cntHeight] not in biggestPowerCell:
-                        biggestPowerCell.append([cx, cy, cnt, cntHeight])
+                        biggestPowerCell.append([cx, cy, cnt, cntHeight, aspect_ratio])
 
         # Check if there are PowerCell seen
         if (len(biggestPowerCell) > 0):
@@ -295,14 +295,15 @@ def findBall(contours, image, centerX, centerY):
 
             # draw extreme points
             # from https://www.pyimagesearch.com/2016/04/11/finding-extreme-points-in-contours-with-opencv/
-            cv2.circle(image, leftmost, 12, (0,255,0), -1)
-            cv2.circle(image, rightmost, 12, (0,0,255), -1)
-            cv2.circle(image, topmost, 12, (255,255,255), -1)
-            cv2.circle(image, bottommost, 12, (255,0,0), -1)
-            print('extreme points', leftmost,rightmost,topmost,bottommost)
+            cv2.circle(image, leftmost, 6, (0,255,0), -1)
+            cv2.circle(image, rightmost, 6, (0,0,255), -1)
+            cv2.circle(image, topmost, 6, (255,255,255), -1)
+            cv2.circle(image, bottommost, 6, (255,0,0), -1)
+            #print('extreme points', leftmost,rightmost,topmost,bottommost)
 
             print("topmost: " + str(topmost[0]))
             print("bottommost: " + str(bottommost[0]))
+           
             #xCoord of the closest ball will be the x position differences between the topmost and 
             #bottom most points
             if (topmost[0] > bottommost[0]):
@@ -311,8 +312,10 @@ def findBall(contours, image, centerX, centerY):
                 xCoord = int(round((bottommost[0]-topmost[0])/2)+topmost[0])
 
             print(xCoord)
-            if (aspect_ratio > 0.9 and aspect_ratio < 1.1):
+            if (closestPowerCell[4] > 0.9 and closestPowerCell[4] < 1.2):
                 xCoord = closestPowerCell[0]
+
+            print ("aspect ratio of ball: " + str(closestPowerCell[4]))     
 
             finalTarget.append(calculateYaw(xCoord, centerX, H_FOCAL_LENGTH))
             finalTarget.append(calculateDistWPILib(closestPowerCell[3]))
@@ -320,9 +323,10 @@ def findBall(contours, image, centerX, centerY):
 
             # Puts the yaw on screen
             # Draws yaw of target + line where center of target is
+            finalYaw = round(finalTarget[1]*1000)/1000
             cv2.putText(image, "Yaw: " + str(finalTarget[0]), (40, 40), cv2.FONT_HERSHEY_COMPLEX, .6,
                         (255, 255, 255))
-            cv2.putText(image, "Dist: " + str(finalTarget[1]), (40, 100), cv2.FONT_HERSHEY_COMPLEX, .6,
+            cv2.putText(image, "Dist: " + str(finalYaw), (40, 100), cv2.FONT_HERSHEY_COMPLEX, .6,
                         (255, 255, 255))
             cv2.line(image, (xCoord, screenHeight), (xCoord, 0), (255, 0, 0), 2)
 
@@ -537,7 +541,7 @@ def checkBall(cntSize, cntAspectRatio):
     #this checks that the area of the contour is greater than the image width divide by 2
     #And that the aspect ratio of the bounding rectangle (width / height) is close to 1 which 
     #is basically a circle however this would filter out 'tadpoles'
-    print ("aspect ratio of ball: " + str(cntAspectRatio)) 
+    
    # return (cntSize > (image_width / 2)) and (round(cntAspectRatio) > 1)
     return (cntSize > (image_width / 2)) and (cntAspectRatio > 0.75)
 
@@ -616,8 +620,6 @@ def calculateDistWPILib(cntHeight):
     # print("after 2: ", VIEWANGLE)
     # VIEWANGLE = math.radians(68.5)
     distance = ((TARGET_HEIGHT * image_height) / (2 * PIX_HEIGHT * math.tan(VIEWANGLE)))
-    # distance = ((0.02) * distance ** 2) + ((69/ 100) * distance) + (47 / 50)
-    # distance = ((-41/450) * distance ** 2) + ((149 / 100) * distance) - (9 / 25)
 
     return distance
 
@@ -854,8 +856,8 @@ while True:
     #currentImg += 1
     #print(imgLength)
 
-    #if (currentImg == imgLength-1 ):
-    #     currentImg = 0
+    if (currentImg == imgLength):
+         currentImg = 0
 
     img = images[currentImg]
 

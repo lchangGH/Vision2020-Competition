@@ -25,7 +25,7 @@ from networktables import NetworkTables
 from networktables.util import ntproperty
 import math
 
-########### SET RESOLUTION TO 256x144 !!!! ############
+########### SET RESOLUTION TO 640x480 !!!! ############
 
 # import the necessary packages
 import datetime
