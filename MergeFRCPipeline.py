@@ -305,7 +305,7 @@ def findPowerCell(frame, mask):
     if len(contours) != 0:
         image = findBall(contours, image, centerX, centerY)
     # Shows the contours overlayed on the original video
-    return mask
+    return image
 
 
 #Draws Contours and finds center and yaw of orange ball
