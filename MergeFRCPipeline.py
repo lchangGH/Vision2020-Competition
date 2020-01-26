@@ -295,6 +295,11 @@ def findTargets(frame, mask):
 
 # Finds the balls from the masked image and displays them on original stream + network tables
 def findPowerCell(frame, mask):
+    
+    global networkTable
+    if networkTable.getBoolean("SendMask", False):
+        return mask
+
     # Finds contours
     _, contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_TC89_KCOS)
     # Take each frame
@@ -312,13 +317,12 @@ def findPowerCell(frame, mask):
     return image
 
 
-#Draws Contours and finds center and yaw of orange ball
+# Draws Contours and finds center and yaw of orange ball
 # centerX is center x coordinate of image
 # centerY is center y coordinate of image
 def findBall(contours, image, centerX, centerY):
     screenHeight, screenWidth, channels = image.shape
     # Seen vision targets (correct angle, adjacent to each other)
-    #cargo = []
 
     if len(contours) > 0:
         # Sort contours by area size (biggest to smallest)
@@ -328,12 +332,10 @@ def findBall(contours, image, centerX, centerY):
         for cnt in cntsSorted:
             x, y, w, h = cv2.boundingRect(cnt)
 
+            #print("bounding rec x: " + str(y))
+            #print("bounding rec y: " + str(x))
             #print("bounding rec height: " + str(h))
             #print("bounding rec width: " + str(w))
-            print("bounding rec x: " + str(y))
-            print("bounding rec y: " + str(x))
-            print("bounding rec height: " + str(h))
-            print("bounding rec width: " + str(w))
         
             cntHeight = h
             aspect_ratio = float(w) / h
@@ -417,10 +419,10 @@ def findBall(contours, image, centerX, centerY):
             cv2.circle(image, rightmost, 8, (0,0,255), -1)
             cv2.circle(image, topmost, 8, (255,255,255), -1)
             cv2.circle(image, bottommost, 8, (255,0,0), -1)
-            print('extreme points', leftmost,rightmost,topmost,bottommost)
+            #print('extreme points', leftmost,rightmost,topmost,bottommost)
 
-            print("topmost: " + str(topmost[0]))
-            print("bottommost: " + str(bottommost[0]))
+            #print("topmost: " + str(topmost[0]))
+            #print("bottommost: " + str(bottommost[0]))
             #xCoord of the closest ball will be the x position differences between the topmost and 
             #bottom most points
             if (topmost[0] > bottommost[0]):
@@ -450,8 +452,6 @@ def findBall(contours, image, centerX, centerY):
             # pushes powerCell angle to network tables
             networkTable.putNumber("YawToPowerCell", finalTarget[0])
             networkTable.putNumber("DistanceToPowerCell", finalYaw)
-
-
 
         cv2.line(image, (round(centerX), screenHeight), (round(centerX), 0), (255, 255, 255), 2)
 
