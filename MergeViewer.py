@@ -119,8 +119,8 @@ orange_blur = 27
 yellow_blur = 1
 
 # define range of green of retroreflective tape in HSV
-lower_green = np.array([40, 75, 75])
-upper_green = np.array([96, 255, 255])
+lower_green = np.array([55, 45, 40])
+upper_green = np.array([100, 255, 255])
 
 lower_yellow = np.array([14, 150, 100])
 upper_yellow = np.array([30, 255, 255])
@@ -719,8 +719,8 @@ def draw_circle(event,x,y,flags,param):
 
 
 Driver = False
-Tape = False
-PowerCell = True
+Tape = True
+PowerCell = False
 ControlPanel = False
 
 
