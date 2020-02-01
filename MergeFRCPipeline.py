@@ -203,14 +203,18 @@ V_FOCAL_LENGTH = image_height / (2 * math.tan((verticalView / 2)))
 # blurs have to be odd
 green_blur = 1
 orange_blur = 27
-yellow_blur = 27
+yellow_blur = 3
 
 # define range of green of retroreflective tape in HSV
 lower_green = np.array([40, 75, 75])
 upper_green = np.array([96, 255, 255])
 
-lower_yellow = np.array([15, 205, 100])
-upper_yellow = np.array([27, 255, 255])
+#lower_yellow = np.array([15, 205, 100])
+#upper_yellow = np.array([27, 255, 255])
+
+lower_yellow = np.array([14, 150, 100])
+upper_yellow = np.array([30, 255, 255])
+
 
 
 switch = 1
@@ -291,6 +295,11 @@ def findTargets(frame, mask):
 
 # Finds the balls from the masked image and displays them on original stream + network tables
 def findPowerCell(frame, mask):
+    
+    global networkTable
+    if networkTable.getBoolean("SendMask", False):
+        return mask
+
     # Finds contours
     _, contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_TC89_KCOS)
     # Take each frame
@@ -308,13 +317,12 @@ def findPowerCell(frame, mask):
     return image
 
 
-#Draws Contours and finds center and yaw of orange ball
+# Draws Contours and finds center and yaw of orange ball
 # centerX is center x coordinate of image
 # centerY is center y coordinate of image
 def findBall(contours, image, centerX, centerY):
     screenHeight, screenWidth, channels = image.shape
     # Seen vision targets (correct angle, adjacent to each other)
-    #cargo = []
 
     if len(contours) > 0:
         # Sort contours by area size (biggest to smallest)
@@ -324,12 +332,10 @@ def findBall(contours, image, centerX, centerY):
         for cnt in cntsSorted:
             x, y, w, h = cv2.boundingRect(cnt)
 
+            #print("bounding rec x: " + str(y))
+            #print("bounding rec y: " + str(x))
             #print("bounding rec height: " + str(h))
             #print("bounding rec width: " + str(w))
-            print("bounding rec x: " + str(y))
-            print("bounding rec y: " + str(x))
-            print("bounding rec height: " + str(h))
-            print("bounding rec width: " + str(w))
         
             cntHeight = h
             aspect_ratio = float(w) / h
@@ -387,7 +393,7 @@ def findBall(contours, image, centerX, centerY):
 
                     # Appends important info to array
                     if [cx, cy, cnt, cntHeight] not in biggestPowerCell:
-                        biggestPowerCell.append([cx, cy, cnt, cntHeight])
+                        biggestPowerCell.append([cx, cy, cnt, cntHeight, aspect_ratio])
 
         # Check if there are PowerCell seen
         if (len(biggestPowerCell) > 0):
@@ -409,14 +415,14 @@ def findBall(contours, image, centerX, centerY):
 
             # draw extreme points
             # from https://www.pyimagesearch.com/2016/04/11/finding-extreme-points-in-contours-with-opencv/
-            cv2.circle(image, leftmost, 12, (0,255,0), -1)
-            cv2.circle(image, rightmost, 12, (0,0,255), -1)
-            cv2.circle(image, topmost, 12, (255,255,255), -1)
-            cv2.circle(image, bottommost, 12, (255,0,0), -1)
-            print('extreme points', leftmost,rightmost,topmost,bottommost)
+            cv2.circle(image, leftmost, 8, (0,255,0), -1)
+            cv2.circle(image, rightmost, 8, (0,0,255), -1)
+            cv2.circle(image, topmost, 8, (255,255,255), -1)
+            cv2.circle(image, bottommost, 8, (255,0,0), -1)
+            #print('extreme points', leftmost,rightmost,topmost,bottommost)
 
-            print("topmost: " + str(topmost[0]))
-            print("bottommost: " + str(bottommost[0]))
+            #print("topmost: " + str(topmost[0]))
+            #print("bottommost: " + str(bottommost[0]))
             #xCoord of the closest ball will be the x position differences between the topmost and 
             #bottom most points
             if (topmost[0] > bottommost[0]):
@@ -425,25 +431,27 @@ def findBall(contours, image, centerX, centerY):
                 xCoord = int(round((bottommost[0]-topmost[0])/2)+topmost[0])
 
             print(xCoord)
-            if (aspect_ratio > 0.9 and aspect_ratio < 1.1):
+            #If aspect ratio is greater than 0.8 and less than 1.2, treat it as a single ball
+            #and simply use the center x value (cx)
+            if (closestPowerCell[4] > 0.9 and closestPowerCell[4] < 1.2):
                 xCoord = closestPowerCell[0]
 
             finalTarget.append(calculateYaw(xCoord, centerX, H_FOCAL_LENGTH))
             finalTarget.append(calculateDistWPILib(closestPowerCell[3]))
-            #print("Yaw: " + str(finalTarget[0]))
 
             # Puts the yaw on screen
             # Draws yaw of target + line where center of target is
+            finalYaw = round(finalTarget[1]*1000)/1000
             cv2.putText(image, "Yaw: " + str(finalTarget[0]), (40, 40), cv2.FONT_HERSHEY_COMPLEX, .6,
                         (255, 255, 255))
-            cv2.putText(image, "Dist: " + str(finalTarget[1]), (40, 100), cv2.FONT_HERSHEY_COMPLEX, .6,
+            cv2.putText(image, "Dist: " + str(finalYaw), (40, 100), cv2.FONT_HERSHEY_COMPLEX, .6,
                         (255, 255, 255))
             cv2.line(image, (xCoord, screenHeight), (xCoord, 0), (255, 0, 0), 2)
 
             currentAngleError = finalTarget[0]
-            # pushes cargo angle to network tables
-
-
+            # pushes powerCell angle to network tables
+            networkTable.putNumber("YawToPowerCell", finalTarget[0])
+            networkTable.putNumber("DistanceToPowerCell", finalYaw)
 
         cv2.line(image, (round(centerX), screenHeight), (round(centerX), 0), (255, 255, 255), 2)
 
@@ -718,7 +726,7 @@ def calculateDistance(heightOfCamera, heightOfTarget, pitch):
 
     return distance
 
-avg = [0 for i in range(0, 8)]
+avg = [0 for i in range(0, 4)]
 
 def calculateDistWPILib(cntHeight):
     global image_height, avg
@@ -765,7 +773,7 @@ def calculateDistWPILib(cntHeight):
 # Link to further explanation: https://docs.google.com/presentation/d/1ediRsI-oR3-kwawFJZ34_ZTlQS2SDBLjZasjzZ-eXbQ/pub?start=false&loop=false&slide=id.g12c083cffa_0_298
 def calculateYaw(pixelX, centerX, hFocalLength):
     yaw = math.degrees(math.atan((pixelX - centerX) / hFocalLength))
-    return round(yaw*100) / 100
+    return round(yaw)
 
 
 # Link to further explanation: https://docs.google.com/presentation/d/1ediRsI-oR3-kwawFJZ34_ZTlQS2SDBLjZasjzZ-eXbQ/pub?start=false&loop=false&slide=id.g12c083cffa_0_298
