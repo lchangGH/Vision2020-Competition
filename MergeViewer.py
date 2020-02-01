@@ -25,6 +25,8 @@ import math
 
 import os
 
+print("OpenCV Version: {}".format(cv2.__version__))
+
 ########### SET RESOLUTION TO 640x480 !!!! ############
 
 # import the necessary packages
