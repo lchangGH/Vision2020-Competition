@@ -186,11 +186,14 @@ def findOuterTarget(frame, mask):
     screenHeight, screenWidth, _ = frame.shape
     centerX = (screenWidth / 2) - .5
     centerY = (screenHeight / 2) - .5
-    im = cv2.imread("outer+10f+00d.jpg"); #shape messes up - change img path
+    strIm = "/Users/rachellucyshyn/Documents/GitHub/Vision2020-Competition/OuterTargetHalfScale/outer+10f+00d.jpg"
+    im = cv2.imread(strIm)
+    cv2.imshow('im', im)
+    cv2.waitKey(0)
     size = im.shape
     #mask
-    imgBinaryMask = cv2.inRange(imgHSVinput, lower_green, upper_green)
-    imgColorMask = cv2.bitwise_and(imgHSVinput,imgHSVinput, mask = imgBinaryMask) # frame = OG image
+    imgBinaryMask = cv2.inRange(im, lower_green, upper_green)
+    imgColorMask = cv2.bitwise_and(im,im, mask = imgBinaryMask) # frame = OG image
     cv2.imshow('binary mask', imgBinaryMask)
     cv2.imshow('color mask', imgColorMask)
     #contours
@@ -202,6 +205,12 @@ def findOuterTarget(frame, mask):
         cntHeight = 0
         cnt = contours[0]
         print('original contour length = ', len(cnt))
+
+    else:
+        print('no contours found')
+        return
+
+
     # extreme points
     leftmost = tuple(cnt[cnt[:,:,0].argmin()][0])
     rightmost = tuple(cnt[cnt[:,:,0].argmax()][0])
@@ -228,8 +237,8 @@ def findOuterTarget(frame, mask):
     focal_length = size[1]
     center = (size[1]/2, size[0]/2)
     camera_matrix = np.array(
-                            [[focal_length, 0, center[0]],
-                            [0, focal_length, center[1]],
+                            [[676.9254872329606, 0.0, 303.89220514146695],
+                            [0.0, 677.9589084754188, 226.64049249597682],
                             [0, 0, 1]], dtype = "double"
                             )
     
@@ -237,13 +246,11 @@ def findOuterTarget(frame, mask):
     
     dist_coeffs = np.zeros((4,1)) # Assuming no lens distortion
     (success, rotation_vector, translation_vector) = cv2.solvePnP(model_points, image_points, camera_matrix, dist_coeffs, flags=cv2.CV_ITERATIVE)
-    
+    print(dist_coeffs)
     print('Rotation Vector:\n {0}', format(rotation_vector))
     print ('Translation Vector:\n {0}', format(translation_vector))
     
-    
-    # Project a 3D point (0, 0, 1000.0) onto the image plane.
-    # We use this to draw a line sticking out of the nose
+
     
     
     #(nose_end_point2D, jacobian) = cv2.projectPoints(np.array([(0.0, 0.0, 1000.0)]), rotation_vector, translation_vector, camera_matrix, dist_coeffs)
@@ -822,7 +829,7 @@ while True:
                 processed = findOuterTarget(frame, threshold)
 
 
-    cv2.imshow("raw", img)
+    cv2.imshow("raw", im)
     cv2.imshow("threshold", threshold)
     cv2.imshow("processed", processed)
     cv2.setMouseCallback('raw', draw_circle)
