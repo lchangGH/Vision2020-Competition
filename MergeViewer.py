@@ -25,7 +25,6 @@ import math
 
 import os
 
-#print("OpenCV Version: {}".format(cv2.__version__))
 # from https://www.pyimagesearch.com/2015/08/10/checking-your-opencv-version-using-python/
 def is_cv3():
     # if we are using OpenCV 3.X, then our cv2.__version__ will start
@@ -41,7 +40,6 @@ def check_opencv_version(major, lib=None):
     # if the supplied library is None, import OpenCV
     if lib is None:
         import cv2 as lib
-        
     # return whether or not the current OpenCV version matches the
     # major version number
     return lib.__version__.startswith(major) 
@@ -169,9 +167,11 @@ def threshold_video(lower_color, upper_color, blur):
 # Finds the tape targets from the masked image and displays them on original stream + network tales
 def findTargets(frame, mask):
 
-
     # Finds contours
-    contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_TC89_KCOS)
+    if is_cv3():
+        _, contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_TC89_KCOS)
+    else:
+        contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_TC89_KCOS)
 
     contours = sorted(contours, key=lambda x: cv2.contourArea(x), reverse=True)
 
@@ -193,7 +193,11 @@ def findTargets(frame, mask):
 # Finds the balls from the masked image and displays them on original stream + network tables
 def findPowerCell(frame, mask):
     # Finds contours
-    contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_TC89_KCOS)
+    if is_cv3():
+        _, contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_TC89_KCOS)
+    else:
+        contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_TC89_KCOS)
+
     # Take each frame
     # Gets the shape of video
     screenHeight, screenWidth, _ = frame.shape
@@ -524,7 +528,10 @@ def findTape(contours, image, centerX, centerY):
 # Finds the balls from the masked image and displays them on original stream + network tables
 def findControlPanel(frame, mask):
     # Finds contours
-    contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_TC89_KCOS)
+    if is_cv3:
+        _, contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_TC89_KCOS)
+    else:
+        contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_TC89_KCOS)
     # Take each frame
     # Gets the shape of video
     screenHeight, screenWidth, _ = frame.shape
