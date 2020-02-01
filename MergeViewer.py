@@ -166,13 +166,15 @@ def findTargets(frame, mask):
     image = frame.copy()
     # Processes the contours, takes in (contours, output_image, (centerOfImage)
     if len(contours) != 0:
-        image = findTape(contours, image, centerX, centerY)
+        #image = findTape(contours, image, centerX, centerY)
+        image = findOuterTarget(contours, image, centerX, centerY)
     # Shows the contours overlayed on the original video
     return image
 
 
 # Finds the balls from the masked image and displays them on original stream + network tables
-def findPowerCell(frame, mask):
+def findPowerCell(frame, mask): 
+    
     # Finds contours
     _, contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_TC89_KCOS)
     # Take each frame
@@ -188,6 +190,76 @@ def findPowerCell(frame, mask):
         image = findBall(contours, image, centerX, centerY)
     # Shows the contours overlayed on the original video
     return image
+
+#find outer target
+def findOuterTarget(frame, mask): 
+
+    # find the three points (leftmost, rightmost, bottomost)
+
+    # Finds contours
+    _, contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_TC89_KCOS)
+    # Take each frame
+    # Gets the shape of video
+    screenHeight, screenWidth, _ = frame.shape
+    # Gets center of height and width
+    centerX = (screenWidth / 2) - .5
+    centerY = (screenHeight / 2) - .5
+    # Copies frame and stores it in image
+    image = frame.copy()
+    # Processes the contours, takes in (contours, output_image, (centerOfImage)
+
+    if len(contours) != 0:
+
+        # Sort contours by area size (biggest to smallest)
+        cntsSorted = sorted(contours, key=lambda x: cv2.contourArea(x), reverse=True)
+        outerTargetContour = cntsSorted[0];
+
+        #  to be completed
+
+    # Call solvePnp()
+
+    # Read Image
+    im = cv2.imread("headPose.jpg");
+    size = im.shape
+
+    #2D image points. If you change the image, you need to change vector
+    image_points = np.array([ (359, 391), # Nose tip
+                              (399, 561), # Chin
+                              (337, 297), # Left eye left corner
+                              (513, 301), # Right eye right corner
+                              (345, 465), # Left Mouth corner
+                              (453, 469)  # Right mouth corner
+                              ], dtype="double")
+
+    # 3D model points.
+    model_points = np.array([ (0.0, 0.0, 0.0), # Nose tip
+                              (0.0, -330.0, -65.0), # Chin
+                              (-225.0, 170.0, -135.0), # Left eye left corner
+                              (225.0, 170.0, -135.0), # Right eye right corne
+                              (-150.0, -150.0, -125.0), # Left Mouth corner
+                              (150.0, -150.0, -125.0) # Right mouth corner
+                              ])
+
+    # Camera internals
+    
+    focal_length = size[1]
+    center = (size[1]/2, size[0]/2)
+    camera_matrix = np.array( [[focal_length, 0, center[0]],
+                              [0, focal_length, center[1]],
+                              [0, 0, 1]
+                              ], dtype = "double")
+
+    print ("Camera Matrix :\n {0}", format(camera_matrix))
+    
+    dist_coeffs = np.zeros((4,1)) # Assuming no lens distortion
+    (success, rotation_vector, translation_vector) = cv2.solvePnP(model_points, image_points, camera_matrix, dist_coeffs, flags=cv2.CV_ITERATIVE)
+    
+    print ("Rotation Vector: ", format(rotation_vector))
+    print ("Translation Vector:\n {0}", format(translation_vector))
+
+    # Shows the contours overlayed on the original video
+    return image
+
 
 # Draws Contours and finds center and yaw of orange ball
 # centerX is center x coordinate of image
@@ -639,8 +711,9 @@ def draw_circle(event,x,y,flags,param):
 
 Driver = False
 Tape = False
-PowerCell = True 
+PowerCell = False
 ControlPanel = False
+OuterTarget = True
 
 
 img = images[0]
@@ -670,11 +743,14 @@ while True:
                 threshold = threshold_video(lower_yellow, upper_yellow, boxBlur)
                 processed = findPowerCell(frame, threshold)
             elif ControlPanel:
-
                 boxBlur = blurImg(frame, yellow_blur)
                 # cv2.putText(frame, "Find Cargo", (40, 40), cv2.FONT_HERSHEY_COMPLEX, .6, (255, 255, 255))
                 threshold = threshold_video(lower_yellow, upper_yellow, frame)
                 processed = findControlPanel(frame, threshold)
+            
+            elif OuterTarget:
+                threshold = threshold_video(lower_green, upper_green, frame)
+                findTargets(frame, threshold)
 
     cv2.imshow("raw", img)
     cv2.imshow("threshold", threshold)
