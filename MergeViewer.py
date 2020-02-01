@@ -62,7 +62,7 @@ def load_images_from_folder(folder):
 #images = load_images_from_folder("./PowerCellImages")
 #images = load_images_from_folder("./PowerCellFullScale")
 #images = load_images_from_folder("./PowerCellFullMystery")
-images = load_images_from_folder("./PowerCellSketchup")
+images = load_images_from_folder("./OuterTargetHalfScale")
 
 # finds height/width of camera frame (eg. 640 width, 480 height)
 image_height, image_width = images[0].shape[:2]
@@ -91,6 +91,12 @@ green_blur = 1
 orange_blur = 27
 yellow_blur = 3
 
+#colours
+purple = (165, 0, 120)
+blue = (255, 0, 0)
+green = (0, 255, 0)
+red = (0, 0, 255)
+
 # define range of green of retroreflective tape in HSV
 lower_green = np.array([40, 75, 75])
 upper_green = np.array([96, 255, 255])
@@ -100,8 +106,8 @@ upper_yellow = np.array([60, 255, 255])
 
 # initialize some variable used later for user input
 color_is_yellow = True
-lower_color = lower_yellow
-upper_color = upper_yellow
+lower_color = lower_green
+upper_color = upper_green
 
 
 switch = 1
@@ -172,6 +178,89 @@ def findTargets(frame, mask):
     # Shows the contours overlayed on the original video
     return image
 
+
+#Rachel trying to figure out outer target
+def findOuterTarget(frame, mask):
+    # Take each frame
+    screenHeight, screenWidth, _ = frame.shape
+    centerX = (screenWidth / 2) - .5
+    centerY = (screenHeight / 2) - .5
+    im = cv2.imread("outer+10f+00d.jpg"); #shape messes up - change img path
+    size = im.shape
+    #mask
+    imgBinaryMask = cv2.inRange(imgHSVinput, lower_green, upper_green)
+    imgColorMask = cv2.bitwise_and(imgHSVinput,imgHSVinput, mask = imgBinaryMask) # frame = OG image
+    cv2.imshow('binary mask', imgBinaryMask)
+    cv2.imshow('color mask', imgColorMask)
+    #contours
+    _, contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_TC89_KCOS)
+
+    if len(contours) > 0:
+        # Sort contours by area size (biggest to smallest)
+        cntsSorted = sorted(contours, key=lambda x: cv2.contourArea(x), reverse=True)
+        cntHeight = 0
+        cnt = contours[0]
+        print('original contour length = ', len(cnt))
+    # extreme points
+    leftmost = tuple(cnt[cnt[:,:,0].argmin()][0])
+    rightmost = tuple(cnt[cnt[:,:,0].argmax()][0])
+    # draw extreme points
+    cv2.circle(imgShowMaths, leftmost, 12, red, -1)
+    cv2.circle(imgShowMaths, rightmost, 12, green, -1)
+    print('extreme points', leftmost,rightmost)
+    cv2.drawContours(imgShowMaths, cnt, -1, purple, 10)
+    cv2.imshow('imgShowMaths', imgShowMaths)
+
+    #2D image points. If you change the image, you need to change vector
+    image_points = np.array([
+                                (leftmost, rightmost),  
+                            ], dtype="double")
+    
+    # 3D model points.
+    model_points = np.array([
+                                (leftmost, rightmost, 0.0),                            
+                            ])
+    
+    
+    # Camera internals
+    
+    focal_length = size[1]
+    center = (size[1]/2, size[0]/2)
+    camera_matrix = np.array(
+                            [[focal_length, 0, center[0]],
+                            [0, focal_length, center[1]],
+                            [0, 0, 1]], dtype = "double"
+                            )
+    
+    print('Camera Matrix :\n {0}',format(camera_matrix))
+    
+    dist_coeffs = np.zeros((4,1)) # Assuming no lens distortion
+    (success, rotation_vector, translation_vector) = cv2.solvePnP(model_points, image_points, camera_matrix, dist_coeffs, flags=cv2.CV_ITERATIVE)
+    
+    print('Rotation Vector:\n {0}', format(rotation_vector))
+    print ('Translation Vector:\n {0}', format(translation_vector))
+    
+    
+    # Project a 3D point (0, 0, 1000.0) onto the image plane.
+    # We use this to draw a line sticking out of the nose
+    
+    
+    #(nose_end_point2D, jacobian) = cv2.projectPoints(np.array([(0.0, 0.0, 1000.0)]), rotation_vector, translation_vector, camera_matrix, dist_coeffs)
+    
+    for p in image_points:
+        cv2.circle(im, (int(p[0]), int(p[1])), 3, (0,0,255), -1)
+    
+    
+    p1 = ( int(image_points[0][0]), int(image_points[0][1]))
+    p2 = ( int(nose_end_point2D[0][0][0]), int(nose_end_point2D[0][0][1]))
+    
+    cv2.line(im, p1, p2, (255,0,0), 2)
+    
+    # Display image
+    cv2.imshow("Output", im)
+    cv2.waitKey(0)
+
+   
 
 # Finds the balls from the masked image and displays them on original stream + network tables
 def findPowerCell(frame, mask):
@@ -688,8 +777,9 @@ def draw_circle(event,x,y,flags,param):
 
 Driver = False
 Tape = False
-PowerCell = True
+PowerCell = False
 ControlPanel = False
+OuterTarget = True
 
 
 img = images[0]
@@ -724,6 +814,10 @@ while True:
                 # cv2.putText(frame, "Find Cargo", (40, 40), cv2.FONT_HERSHEY_COMPLEX, .6, (255, 255, 255))
                 threshold = threshold_video(lower_yellow, upper_yellow, frame)
                 processed = findControlPanel(frame, threshold)
+            elif OuterTarget:
+                threshold = threshold_video(lower_green, upper_green, frame)
+                processed = findOuterTarget(frame, threshold)
+
 
     cv2.imshow("raw", img)
     cv2.imshow("threshold", threshold)
