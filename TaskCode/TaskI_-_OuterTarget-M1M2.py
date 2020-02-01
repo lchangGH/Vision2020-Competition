@@ -189,9 +189,9 @@ while (True):
         print('minimum area rectangle extent = ', float(area)/(width*height))
 
         # minimum enclosing circle
-        (x,y),radius = cv2.minEnclosingCircle(cnt)
-        print('minimum enclosing circle = ', (x,y),radius)
-        center = (int(x),int(y))
+        (xcirc,ycirc),radius = cv2.minEnclosingCircle(cnt)
+        print('minimum enclosing circle = ', (xcirc,ycirc),radius)
+        center = (int(xcirc),int(ycirc))
         radius = int(radius)
         cv2.circle(imgContours,center,radius,green,2)
         #equi_diameter = np.sqrt(4*area/np.pi)
@@ -269,6 +269,10 @@ while (True):
         #cv2.circle(imgContours, bottommost, 12, blue, -1)
         #print('extreme points = left',leftmost,'right',rightmost,'top',topmost,'bottom',bottommost)
         print('extreme points = left',leftmost,'right',rightmost)
+
+        print('--')
+        print('leftmost minus rightmost -> ', int(rightmost[0])-int(leftmost[0]))
+        print('minimum enclosing circle -> center / diameter = ', (xcirc,ycirc), radius*2)
 
     # Display the contours and maths generated
     cv2.imshow('contours and math over green mask', imgContours)
