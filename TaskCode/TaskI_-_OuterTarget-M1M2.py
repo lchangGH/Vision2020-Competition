@@ -185,7 +185,8 @@ while (True):
         box = cv2.boxPoints(rect)
         box = np.int0(box)
         #cv2.drawContours(imgContours,[box],0,blue,2)
-        print('minimum area rectangle aspect = ', float(width)/height)
+        minARaspect = float(width)/height
+        print('minimum area rectangle aspect = ', minARaspect)
         print('minimum area rectangle extent = ', float(area)/(width*height))
 
         # minimum enclosing circle
@@ -271,6 +272,8 @@ while (True):
         print('extreme points = left',leftmost,'right',rightmost)
 
         print('--')
+        print (photos[i])
+        print('minimum area rectangle aspect = ', minARaspect)
         print('leftmost minus rightmost -> ', int(rightmost[0])-int(leftmost[0]))
         print('minimum enclosing circle -> center / diameter = ', (xcirc,ycirc), radius*2)
 
