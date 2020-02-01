@@ -76,14 +76,20 @@ def load_images_from_folder(folder):
             images.append(img)
     return images
 
-#images = load_images_from_folder("./OuterTargetImages")
-#images = load_images_from_folder("./OuterTargetHalfScale")
+# Power Cell Images
 #images = load_images_from_folder("./PowerCell25Scale")
 #images = load_images_from_folder("./PowerCellImages")
 #images = load_images_from_folder("./PowerCellFullScale")
 #images = load_images_from_folder("./PowerCellFullMystery")
-images = load_images_from_folder("./PowerCellSketchup")
+#images = load_images_from_folder("./PowerCellSketchup")
 #images = load_images_from_folder("./LifeCamPhotos")
+
+# Outer Target Images
+#images = load_images_from_folder("./OuterTargetImages")
+images = load_images_from_folder("./OuterTargetHalfScale")
+#images = load_images_from_folder("./OuterTargetHalfDistance")
+#images = load_images_from_folder("./OuterTargetSketchup")
+
 
 # finds height/width of camera frame (eg. 640 width, 480 height)
 image_height, image_width = images[0].shape[:2]
